@@ -1,0 +1,44 @@
+/* src/styles/variables */
+
+
+/* Global CSS Variables */
+
+/* Dark theme default */
+:root {
+  /* Primary palette */
+  --color-primary: #768cff;
+  --color-primary-dark: #a5b8ff;
+  --color-accent: #2b2b40;
+
+  /* Text */
+  --color-text: #f5f6fa;
+  --color-text-muted: #aab7cf;
+
+  /* Backgrounds */
+  --color-bg: #1e1e2f;
+  --color-bg-muted: #2b2b40;
+
+  /* Borders & shadows */
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-scrollbar: #3d4565;
+
+  /* Transitions */
+  --transition-fast: 0.2s ease-in-out;
+  --transition-medium: 0.5s;
+}
+
+/* Light theme override */
+[data-theme='light'] {
+  --color-primary: #4154f1;
+  --color-primary-dark: #012970;
+  --color-accent: #f6f9ff;
+
+  --color-text: #012970;
+  --color-text-muted: #899bbd;
+
+  --color-bg: #ffffff;
+  --color-bg-muted: #f6f9ff;
+
+  --color-border: rgba(1, 41, 112, 0.1);
+  --color-scrollbar: #aab7cf;
+}

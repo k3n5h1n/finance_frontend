@@ -8,6 +8,7 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.min.js'
 
 // import project elements
+import './styles/variables.css';
 import './App.css'
 import Header from './components/Header'
 import SideBar from './components/SideBar'
