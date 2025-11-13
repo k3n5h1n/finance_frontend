@@ -1,0 +1,9 @@
+/* src/pages/people/people.css */
+
+.people-page h2 {
+  font-weight: 600;
+}
+
+.table td, .table th {
+  vertical-align: middle;
+}
