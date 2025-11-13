@@ -1,0 +1,17 @@
+/* src/pages/organizations/organizations.css */
+
+.organizations-page {
+  color: var(--text-color);
+}
+
+@media (max-width: 768px) {
+  table {
+    font-size: 0.9rem;
+  }
+  .pagetitle h1 {
+    font-size: 1.4rem;
+  }
+  .btn {
+    font-size: 0.9rem;
+  }
+}

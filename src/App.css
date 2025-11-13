@@ -10,10 +10,25 @@
   --bgColor: #f6f9ff; 
 }
 
+#main {
+  margin-top: 60px; /* matches your header height */
+  padding: 20px;
+  transition: margin-left 0.3s ease;
+}
+
+@media (min-width: 1200px) {
+  #main {
+    margin-left: 300px; /* matches sidebar width */
+  }
+}
+
+
 body {
   font-family: 'Open Sans', sans-serif;
   color: #444444;
   background: var(--bgColor);
+  margin: 0;
+  padding: 0;
 }
 
 a {
