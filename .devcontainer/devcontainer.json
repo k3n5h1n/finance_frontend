@@ -1,6 +1,7 @@
 {
   "name": "Finance Frontend",
   "image": "node:20-slim",
+  "runArgs": ["--dns", "8.8.8.8"],
   "workspaceFolder": "/workspace",
   "remoteUser": "node",
   "updateRemoteUserUID": true,
