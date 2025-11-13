@@ -1,25 +1,35 @@
+// App.jsx
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-// import icons
-import 'bootstrap-icons/font/bootstrap-icons.css'
-import 'remixicon/fonts/remixicon.css'
-
-// import bootstrap
-import 'bootstrap/dist/css/bootstrap.min.css'
-import 'bootstrap/dist/js/bootstrap.min.js'
-
-// import project elements
-import './styles/variables.css';
-import './App.css'
+// Import navigation elements
 import Header from './components/Header'
 import SideBar from './components/SideBar'
 
-function App() {
+// Import pages
+// TBD: import Dashboard from './pages/Dashboard'
+import OrganizationsList from './pages/organizations/OrganizationsList';
+import PeopleList from './pages/people/PeopleList';
 
+// import project styles
+import './styles/variables.css';
+import './App.css'
+
+// Application declaration
+function App() {
   return (
-    <>
-      <Header/>
-      <SideBar/>
-    </>  
+    <Router>
+      <Header />
+      <SideBar />
+      <main id="main" className="main">
+        <Routes>
+          {/* Add your routes here */}
+          <Route path="/setup/organizations" element={<OrganizationsList />} />
+          <Route path="/setup/people" element={<PeopleList />} />
+          {/* You can add default or placeholder routes below */}
+          <Route path="*" element={<div className="p-4">Welcome to the dashboard</div>} />
+        </Routes>
+      </main>
+    </Router>
   )
 }
 
