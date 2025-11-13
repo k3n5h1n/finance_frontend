@@ -63,8 +63,8 @@ const sideBarNav = [
     label: "Setup",
     icon: "bi bi-menu-button-wide",
     children: [
-      { label: "Organizations", icon: "bi bi-circle", href: "#" },
-      { label: "People", icon: "bi bi-circle", href: "#" },
+      { label: "Organizations", icon: "bi bi-circle", href: "/setup/organizations" },
+      { label: "People", icon: "bi bi-circle", href: "/setup/people" },
       { label: "Accounts", icon: "bi bi-circle", href: "#" },
       { label: "Taxes & Regulatory", icon: "bi bi-circle", href: "#" },
       { label: "Data Feeds", icon: "bi bi-circle", href: "#" },
