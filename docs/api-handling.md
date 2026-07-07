@@ -38,7 +38,7 @@ When adding a new API, confirm with the backend whether it is org-scoped before 
 
 ```
 Browser:  GET /api/accounting/events/
-Proxy:    GET http://172.17.0.1:5002/accounting/events/
+Proxy:    GET http://{IP address}:{port}/accounting/events/
 ```
 
 Org-scoped `apiConfig` files should use `/api` in development so browser requests stay same-origin.
@@ -96,22 +96,22 @@ Shared helper: `src/utils/paginatedList.js` → `normalizePaginatedListResponse(
 
 Query parameters (when supported):
 
-| Param | Purpose |
-|-------|---------|
+| Param         | Purpose            |
+| ------------- | ------------------ |
 | `page_number` | 1-based page index |
-| `page_size` | Rows per page |
+| `page_size`   | Rows per page      |
 
 ### Events list filters
 
 `GET /accounting/events/` supports server-side filtering and pagination. Query params:
 
-| Param | Purpose |
-|-------|---------|
-| `page_number`, `page_size` | Pagination |
-| `description_contains` | Case-insensitive substring match on event description |
-| `entries_start_on_or_after` | Event `entries_start` ≥ date (`YYYY-MM-DD`) |
-| `entries_end_on_or_before` | Event `entries_end` ≤ date |
-| `supplier_id` | Events with at least one line for that supplier |
+| Param                       | Purpose                                               |
+| --------------------------- | ----------------------------------------------------- |
+| `page_number`, `page_size`  | Pagination                                            |
+| `description_contains`      | Case-insensitive substring match on event description |
+| `entries_start_on_or_after` | Event `entries_start` ≥ date (`YYYY-MM-DD`)           |
+| `entries_end_on_or_before`  | Event `entries_end` ≤ date                            |
+| `supplier_id`               | Events with at least one line for that supplier       |
 
 Implemented in `listEvents(organizationId, filters)` via `buildEventsListQuery()`. Other list pages should follow the same param names where applicable.
 
@@ -119,24 +119,24 @@ Implemented in `listEvents(organizationId, filters)` via `buildEventsListQuery()
 
 Paths use **underscores** in segment names. Trailing slashes differ by endpoint — **match API Fairy exactly**.
 
-| Operation | Pattern (examples) |
-|-----------|-------------------|
-| Event detail PATCH | `/accounting/events/{id}` (no trailing slash) |
+| Operation                  | Pattern (examples)                                                                                             |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Event detail PATCH         | `/accounting/events/{id}` (no trailing slash)                                                                  |
 | Post entry / group / event | `PATCH /accounting/entries/{id}/post`, `…/entry_groups/{id}/post`, `…/events/{id}/post` (empty JSON body `{}`) |
-| Entry group detail | `/accounting/entry_groups/{id}/` (with slash) |
-| Nested create | `/accounting/events/{id}/entry_groups` (no trailing slash) |
-| Entry line create | `/accounting/entries/{id}/entries` |
-| Line item create | `/accounting/entry_lines/{id}/line_items` |
-| Line item update/delete | `/accounting/line_items/{id}/` |
+| Entry group detail         | `/accounting/entry_groups/{id}/` (with slash)                                                                  |
+| Nested create              | `/accounting/events/{id}/entry_groups` (no trailing slash)                                                     |
+| Entry line create          | `/accounting/entries/{id}/entries`                                                                             |
+| Line item create           | `/accounting/entry_lines/{id}/line_items`                                                                      |
+| Line item update/delete    | `/accounting/line_items/{id}/`                                                                                 |
 
 **Rule:** Confirm create vs detail URLs separately. Nested collection names may differ from the shallow resource name (e.g. entry lines created under `entries`, updated under `entry_lines`).
 
 ## Reports
 
-| Report | Endpoint |
-|--------|----------|
+| Report           | Endpoint                                    |
+| ---------------- | ------------------------------------------- |
 | Income statement | `GET /accounting/reports/income_statement/` |
-| Balance sheet | `GET /accounting/reports/balance_sheet/` |
+| Balance sheet    | `GET /accounting/reports/balance_sheet/`    |
 
 Query parameters (GET only — no JSON body):
 
@@ -149,11 +149,11 @@ Future reports should follow the same `/accounting/reports/<report_name>/` patte
 
 Posting uses dedicated **`PATCH …/post`** endpoints — not a manual `PATCH` with `is_posted: true`.
 
-| Level | Endpoint | Effect |
-|-------|----------|--------|
-| Entry | `PATCH /accounting/entries/{id}/post` | Posts that entry |
+| Level       | Endpoint                                   | Effect                               |
+| ----------- | ------------------------------------------ | ------------------------------------ |
+| Entry       | `PATCH /accounting/entries/{id}/post`      | Posts that entry                     |
 | Entry group | `PATCH /accounting/entry_groups/{id}/post` | Posts all draft entries in the group |
-| Event | `PATCH /accounting/events/{id}/post` | Posts all draft entries in the event |
+| Event       | `PATCH /accounting/events/{id}/post`       | Posts all draft entries in the event |
 
 Request: `Content-Type: application/json` with body `{}`. Response: updated resource (entry) or nested tree (group/event).
 
@@ -172,9 +172,9 @@ Validation schemas in `src/utils/validation/` expose helpers like `formValuesToU
 
 ## Date and datetime fields
 
-| Field type | Frontend format |
-|------------|-----------------|
-| Entry `date` | `YYYY-MM-DD` (HTML date input) |
+| Field type               | Frontend format                              |
+| ------------------------ | -------------------------------------------- |
+| Entry `date`             | `YYYY-MM-DD` (HTML date input)               |
 | Replicate `entries_date` | `YYYY-MM-DDT00:00:00` (Marshmallow DateTime) |
 
 ## Error handling in UI
