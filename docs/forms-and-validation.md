@@ -87,7 +87,8 @@ Backend validation errors return as `messages.json`:
 
 ### Common backend requirements
 
-- **PATCH** often needs full object including `display_order`, `is_posted`
+- **PATCH** often needs full object including `display_order`, `is_posted` (for entry metadata edits)
+- **Posting** uses `PATCH …/post` endpoints — do not set `is_posted: true` via entry PATCH to post
 - **Dates** as `YYYY-MM-DD` strings for date fields
 - **Datetimes** as ISO strings with time component when Marshmallow expects DateTime
 - **Clear optional FK:** send `null` explicitly (e.g. `supplier_id: null`)

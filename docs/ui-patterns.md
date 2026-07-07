@@ -56,7 +56,25 @@ Common structure:
 4. Data: table or cards
 5. Modal at bottom of fragment
 
-**Events list** additionally sorts client-side and supports replicate via `ReplicateEventModal`.
+### List pages with filters and pagination
+
+**Events list** is the reference implementation for server-driven lists.
+
+1. **Filter card** — filter controls above the table; changes reset to page 1 and refetch
+2. **Debounced text search** — description filter waits ~400ms before applying
+3. **Pagination** — `ListPagination` component above and below the table
+4. **API** — `listEvents(orgId, filters)` sends query params; response normalized via `normalizePaginatedListResponse`
+
+Reusable pieces:
+
+| Piece | Location |
+|-------|----------|
+| `ListPagination` | `src/components/ListPagination.jsx` |
+| `normalizePaginatedListResponse` | `src/utils/paginatedList.js` |
+
+When adding pagination to another list, wire `page_number` / `page_size` in `*Api.js` and reuse `ListPagination` with the same envelope shape.
+
+**Events list** also supports replicate via `ReplicateEventModal`.
 
 ## Expandable tree tables
 
@@ -74,8 +92,8 @@ Shared styles: `accounts.css` tree classes; reports use `reportComponents.jsx`.
 
 Multi-level document UI on one page:
 
-- Header card: event metadata + actions (edit, replicate, delete, add group)
-- Sections per entry group with entries as cards
+- Header card: event metadata + actions (edit, replicate, **post event**, delete, add group)
+- Sections per entry group with entries as cards; group header has **post group**
 - Entry lines in table; line items in expandable sub-row
 - Each level has its own modal component
 
@@ -85,7 +103,12 @@ After any mutation, **reload full event** via `getEvent` — do not patch local 
 
 - Event header edit: allowed even when posted
 - Add/delete entry, lines, items: draft event and draft entry only
-- Post entry: when balanced and has lines (`canPostEntry`)
+- **Post** actions (green check icon via `PostActionButton`):
+  - **Entry** — draft, has lines, debits = credits (`canPostEntry`)
+  - **Entry group** — all entries in the group balanced; at least one draft entry postable (`canPostEntryGroup`)
+  - **Event** — all entries across all groups balanced; at least one draft entry postable (`canPostEvent`)
+
+Disabled post buttons show the block reason in a tooltip (`event-post-btn-wrap`). Confirm via `useAppDialog` before calling `postEntry`, `postEntryGroup`, or `postEvent`.
 
 ## Drill-through links
 

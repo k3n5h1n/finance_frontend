@@ -73,7 +73,47 @@ export const EVENTS_API = {
    - `messages.json` (field → messages)
    - `message`, `error`
 3. `request()` or `fetchReport()` — call `orgFetch`, throw `Error` with status + detail on failure
-4. `normalizeListResponse()` where list shape varies (`[]`, `{ results }`, `{ events }`, etc.)
+4. List normalization — bare arrays or paginated envelopes (see below)
+
+### Paginated list responses
+
+Several list endpoints return a paginated envelope instead of a bare array:
+
+```json
+{
+  "results": [ … ],
+  "page_number": 1,
+  "page_size": 25,
+  "total_count": 142,
+  "total_pages": 6
+}
+```
+
+Shared helper: `src/utils/paginatedList.js` → `normalizePaginatedListResponse(data, resultKeys)`.
+
+- Accepts a bare array (legacy) and synthesizes page metadata.
+- `resultKeys` names the results array per resource (e.g. `["results", "events"]` for events).
+
+Query parameters (when supported):
+
+| Param | Purpose |
+|-------|---------|
+| `page_number` | 1-based page index |
+| `page_size` | Rows per page |
+
+### Events list filters
+
+`GET /accounting/events/` supports server-side filtering and pagination. Query params:
+
+| Param | Purpose |
+|-------|---------|
+| `page_number`, `page_size` | Pagination |
+| `description_contains` | Case-insensitive substring match on event description |
+| `entries_start_on_or_after` | Event `entries_start` ≥ date (`YYYY-MM-DD`) |
+| `entries_end_on_or_before` | Event `entries_end` ≤ date |
+| `supplier_id` | Events with at least one line for that supplier |
+
+Implemented in `listEvents(organizationId, filters)` via `buildEventsListQuery()`. Other list pages should follow the same param names where applicable.
 
 ## Backend URL conventions (accounting)
 
@@ -82,6 +122,7 @@ Paths use **underscores** in segment names. Trailing slashes differ by endpoint 
 | Operation | Pattern (examples) |
 |-----------|-------------------|
 | Event detail PATCH | `/accounting/events/{id}` (no trailing slash) |
+| Post entry / group / event | `PATCH /accounting/entries/{id}/post`, `…/entry_groups/{id}/post`, `…/events/{id}/post` (empty JSON body `{}`) |
 | Entry group detail | `/accounting/entry_groups/{id}/` (with slash) |
 | Nested create | `/accounting/events/{id}/entry_groups` (no trailing slash) |
 | Entry line create | `/accounting/entries/{id}/entries` |
@@ -104,13 +145,27 @@ Query parameters (GET only — no JSON body):
 
 Future reports should follow the same `/accounting/reports/<report_name>/` pattern.
 
+## Posting (entries, groups, events)
+
+Posting uses dedicated **`PATCH …/post`** endpoints — not a manual `PATCH` with `is_posted: true`.
+
+| Level | Endpoint | Effect |
+|-------|----------|--------|
+| Entry | `PATCH /accounting/entries/{id}/post` | Posts that entry |
+| Entry group | `PATCH /accounting/entry_groups/{id}/post` | Posts all draft entries in the group |
+| Event | `PATCH /accounting/events/{id}/post` | Posts all draft entries in the event |
+
+Request: `Content-Type: application/json` with body `{}`. Response: updated resource (entry) or nested tree (group/event).
+
+API functions in `eventsApi.js`: `postEntry`, `postEntryGroup`, `postEvent` — shared `postResource()` helper.
+
 ## PATCH payloads (Marshmallow)
 
 The backend often expects a **full resource payload** on PATCH, not a partial diff. Include:
 
 - All editable fields
 - `display_order` where applicable
-- `is_posted` on entries
+- `is_posted` on entry PATCH (editing metadata only — use `/post` to post)
 - `supplier_id: null` to clear an optional supplier (omit on create)
 
 Validation schemas in `src/utils/validation/` expose helpers like `formValuesToUpdatePayload(data, existingRecord)` to build complete bodies.

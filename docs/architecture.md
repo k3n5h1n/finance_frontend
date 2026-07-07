@@ -19,7 +19,7 @@ There is no global state library. Server data lives in component state; organiza
 src/
 ├── App.jsx              # Router shell, org-gated routes
 ├── main.jsx             # Bootstrap + theme init
-├── components/          # Header, SideBar, Logo, AppDialog
+├── components/          # Header, SideBar, Logo, AppDialog, ListPagination
 ├── context/             # OrganizationContext
 ├── data/                # sidebarNav.js (static nav tree)
 ├── hooks/               # useAppDialog
@@ -31,7 +31,7 @@ src/
 │   ├── reports/
 │   └── suppliers/
 ├── styles/              # variables.css (theme tokens)
-└── utils/               # orgRequest, validation schemas
+└── utils/               # orgRequest, paginatedList, validation schemas
 ```
 
 Each feature folder typically contains:
@@ -84,6 +84,8 @@ Used for: Organizations, People, Accounts, Suppliers, Events (list only).
 - Table on desktop; card list on small screens where implemented
 - Modal with `mode`: `add` | `edit` | `view`
 - After save, parent refetches or closes modal with `refresh` flag
+
+**Events list** additionally has server-side filters, pagination (`ListPagination`), and replicate via `ReplicateEventModal`. See [UI patterns](./ui-patterns.md#list-pages-with-filters-and-pagination).
 
 ### Document workspace
 
