@@ -1,7 +1,11 @@
 {
   "name": "Finance Frontend",
   "image": "node:20-slim",
-  "runArgs": ["--dns", "8.8.8.8"],
+  "runArgs": [
+    "--dns",
+    "8.8.8.8",
+    "--add-host=host.docker.internal:host-gateway"
+  ],
   "workspaceFolder": "/workspace",
   "remoteUser": "node",
   "updateRemoteUserUID": true,
