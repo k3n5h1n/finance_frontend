@@ -7,7 +7,7 @@ const projectRoot = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, projectRoot, "");
-  const proxyTarget = env.API_PROXY_TARGET ?? "http://172.17.0.1:5002";
+  const proxyTarget = env.API_PROXY_TARGET;
 
   return {
     plugins: [react()],
