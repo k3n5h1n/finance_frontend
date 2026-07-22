@@ -1,0 +1,8 @@
+.account-history-table th.text-end,
+.account-history-table td.text-end {
+  white-space: nowrap;
+}
+
+.account-history-card .font-monospace {
+  font-variant-numeric: tabular-nums;
+}

@@ -22,7 +22,7 @@ src/
 ├── components/          # Header, SideBar, Logo, AppDialog, ListPagination
 ├── context/             # OrganizationContext
 ├── data/                # sidebarNav.js (static nav tree)
-├── hooks/               # useAppDialog
+├── hooks/               # useAppDialog, useEscapeToClose
 ├── pages/               # Feature modules (one folder per area)
 │   ├── accounts/
 │   ├── events/          # Transactions (accounting events)
@@ -31,7 +31,7 @@ src/
 │   ├── reports/
 │   └── suppliers/
 ├── styles/              # variables.css (theme tokens)
-└── utils/               # orgRequest, paginatedList, validation schemas
+└── utils/               # orgRequest, paginatedList, listSearchParams, validation schemas
 ```
 
 Each feature folder typically contains:
@@ -85,13 +85,13 @@ Used for: Organizations, People, Accounts, Suppliers, Events (list only).
 - Modal with `mode`: `add` | `edit` | `view`
 - After save, parent refetches or closes modal with `refresh` flag
 
-**Events list** additionally has server-side filters, pagination (`ListPagination`), and replicate via `ReplicateEventModal`. See [UI patterns](./ui-patterns.md#list-pages-with-filters-and-pagination).
+**Events list** additionally has server-side filters, pagination (`ListPagination`), informational URL query params, and replicate via `ReplicateEventModal`. See [UI patterns](./ui-patterns.md#list-pages-with-filters-and-pagination) and [Informational URLs](./ui-patterns.md#informational-urls-list-filters).
 
 ### Document workspace
 
 Used for: **Event workspace** (`/accounting/events/:eventId`).
 
-- Single GET loads full tree (event → entry groups → entries → lines → line items)
+- Single GET loads full tree (event → entry groups → entries → lines → line resources)
 - Inline sections with modals for each level
 - Reload full tree after any mutation
 
@@ -99,9 +99,10 @@ Used for: **Event workspace** (`/accounting/events/:eventId`).
 
 Used for: Income Statement, Balance Sheet.
 
-- Fiscal year + `posted_only` filters
+- Fiscal year + `posted_only` filters (balance sheet: multi-year via `fiscal_years`)
 - Hierarchical account trees with expand/collapse
 - Drill-through links to Account History with query params
+- Balance sheet comparative columns headed by period `end_date`, newest left
 
 ## Environment
 

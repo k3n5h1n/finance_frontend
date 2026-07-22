@@ -11,16 +11,16 @@ Event
 └── Entry group
     └── Entry
         └── Entry line
-            └── Line item
+            └── Line resource
 ```
 
 | Level | Key fields | Notes |
 |-------|------------|--------|
-| Event | `description`, `status`, `is_external` | Container; status derived from entries |
+| Event | `description`, `type`, `status`, `is_external` | Container; status derived from entries. Types (API): `normal`, `opening_balance`, `year_end_close` |
 | Entry group | `description`, `type`, `display_order` | Types: primary, adjustment, accrual, reversal |
 | Entry | `date`, `description`, `is_posted`, `display_order` | Posted entries are immutable in UI |
 | Entry line | `account`, `supplier`, `debit`, `credit`, `display_order` | Exactly one of debit/credit non-zero |
-| Line item | `description`, `quantity`, `unit_measure`, `unit_amount`, `extended_amount` | Optional breakdown of line amount |
+| Line resource | `description`, `quantity`, `unit_measure`, `unit_amount`, `extended_amount` | Optional breakdown of line amount |
 
 ### Reading data
 
@@ -43,7 +43,7 @@ Event
 
 Create endpoints are **nested**; update/delete use **shallow** resource URLs. See [API handling](./api-handling.md) for the full table.
 
-**Replicate event:** `POST /accounting/events/{id}/replicate` with optional `include_line_items`, `entries_date` (datetime string).
+**Replicate event:** `POST /accounting/events/{id}/replicate` with optional `include_line_resources`, `entries_date` (datetime string).
 
 ## Event status (frontend)
 
@@ -92,28 +92,33 @@ Rows include running balance, event link, posted flag.
 
 ### Balance sheet
 
-`GET /accounting/reports/balance_sheet/?fiscal_year=&posted_only=`
+`GET /accounting/reports/balance_sheet/?fiscal_years=2025&fiscal_years=2026&posted_only=`
 
-- Sections: **Asset**, **Liability**, **Equity** (in that order)
-- **Period Ending:** from `end_date` (no start date)
-- **Balanced** badge from boolean `balanced` (assets vs liabilities + equity)
+- Query: repeated `fiscal_years` (preferred); optional top-level `posted_only` echo
+- Response: `periods[]` (per-year metadata/totals/`balanced`/`end_date`) + flat `rows[]` with `account` and `balances[]` aligned by period index
+- UI sorts periods **newest first**; amount column headers use each period’s `end_date` (not fiscal year)
+- Sections: **Asset**, **Liability**, **Equity** (from `account.type`)
 - Equity section handles empty chart gracefully: "No equity accounts defined."
+- Year picker: multi-select checkboxes (non-sequential years allowed); default current + prior when available
+- Account history drill-through uses the leftmost (most recent) period `end_date`
 
 ### Shared report UI
 
-- Fiscal year dropdown (`2025`, `2026`; default current calendar year)
+- Income statement: single fiscal year dropdown (legacy API until multi-year lands)
+- Balance sheet: multi-select fiscal years; comparative columns
 - Posted only checkbox
 - Expand/collapse all
 - Eye icon → account history with report date context
+- Balanced badge(s): per period under balance sheet column headers
 
-Report tree building: `buildReportSectionTree(allAccounts, reportRows)` merges API balances onto chart hierarchy.
+Report tree building: `buildReportSectionTree` (single balance) / `buildMultiPeriodReportSectionTree` (balances array) merge API amounts onto chart hierarchy.
 
 ## Amounts and formatting
 
 | Helper | Use |
 |--------|-----|
 | `formatAmount` | Currency, 2 decimal places |
-| `formatUnitCost` | Line item unit cost, up to 3 decimals |
+| `formatUnitCost` | Line resource unit cost, up to 3 decimals |
 | `formatDate` | ISO date → locale short date |
 | `formatDateTime` | Timestamps on event header |
 

@@ -13,8 +13,11 @@ const sideBarNav = [
     label: "Accounting",
     icon: "bi bi-menu-button-wide",
     children: [
-      { label: "Transactions", icon: "bi bi-circle", href: "#" },
-      { label: "Suppliers", icon: "bi bi-circle", href: "#" },
+      { label: "Transactions", icon: "bi bi-circle", href: "/accounting/events" },
+      { label: "Account History", icon: "bi bi-circle", href: "/accounting/account-history" },
+      { label: "Income Statement", icon: "bi bi-circle", href: "/accounting/reports/income-statement" },
+      { label: "Balance Sheet", icon: "bi bi-circle", href: "/accounting/reports/balance-sheet" },
+      { label: "Suppliers", icon: "bi bi-circle", href: "/accounting/suppliers" },
       { label: "Year-End", icon: "bi bi-circle", href: "#" },
       { label: "Audit", icon: "bi bi-circle", href: "#" },
     ],
@@ -29,8 +32,8 @@ const sideBarNav = [
         icon: "bi bi-circle", 
         href: "#",
         children: [
-            {label: "Income Statement", href: "#"},
-            {label: "Balance Sheet", href: "#"},
+            {label: "Income Statement", href: "/accounting/reports/income-statement"},
+            {label: "Balance Sheet", href: "/accounting/reports/balance-sheet"},
             {label: "Cashflow Statement", href: "#"},
         ] 
       },
@@ -65,7 +68,7 @@ const sideBarNav = [
     children: [
       { label: "Organizations", icon: "bi bi-circle", href: "/setup/organizations" },
       { label: "People", icon: "bi bi-circle", href: "/setup/people" },
-      { label: "Accounts", icon: "bi bi-circle", href: "#" },
+      { label: "Accounts", icon: "bi bi-circle", href: "/setup/accounts" },
       { label: "Taxes & Regulatory", icon: "bi bi-circle", href: "#" },
       { label: "Data Feeds", icon: "bi bi-circle", href: "#" },
     ],

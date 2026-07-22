@@ -1,16 +1,19 @@
-// src/pages/people/peopleList.jsx
+// src/components/PeopleList.jsx
 
-import React, { useEffect, useState } from "react";
-import "./people.css";
-import { Modal } from 'bootstrap';
-import { PEOPLE_API } from "./apiConfig";
+import { useState, useEffect } from "react";
 import PeopleModal from "./PeopleModal";
+import { PEOPLE_API } from "./apiConfig";
+import { deletePerson } from "./peopleApi";
 
 export default function PeopleList() {
   const [people, setPeople] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPerson, setSelectedPerson] = useState(null);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPerson, setSelectedPerson] = useState(null);
+  const [modalMode, setModalMode] = useState("edit"); // "add" | "edit" | "view"
+
+  /** Load all people */
   const fetchPeople = async () => {
     try {
       const res = await fetch(PEOPLE_API.LIST);
@@ -23,87 +26,120 @@ export default function PeopleList() {
     }
   };
 
+  // Called once, on page load
   useEffect(() => {
     fetchPeople();
   }, []);
 
+  const openViewModal = (person) => {
+    setSelectedPerson(person);
+    setModalMode("view");
+    setIsModalOpen(true);
+  };
+
+  // Open modal for new person 
   const openNewModal = () => {
     setSelectedPerson(null);
-    const modal = new Modal(document.getElementById("peopleModal"));
-    modal.show();
+    setModalMode("add");
+    setIsModalOpen(true);
   };
 
+  // Open modal for editing a person
   const openEditModal = (person) => {
     setSelectedPerson(person);
-    const modal = new Modal(document.getElementById("peopleModal"));
-    modal.show();
+    setModalMode("edit");
+    setIsModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this person?")) return;
-    try {
-      const res = await fetch(PEOPLE_API.DETAIL(id), { method: "DELETE" });
-      if (!res.ok) throw new Error("Delete failed");
-      fetchPeople();
-    } catch (err) {
-      console.error("Delete failed:", err);
-    }
+  // Open modal with copy of person to add
+  const openCopyModal = (person) => {
+    const copy = {
+      ...person,
+      id: undefined,
+      name: `${person.name} (copy)`
+    };
+  
+    setModalMode("add");
+    setSelectedPerson(copy);
+    setIsModalOpen(true);
   };
+  
+  // Delete a person from the list
+  const handleDelete = async (id) => {
+    await deletePerson(id);
+    fetchPeople();
+  };
+
+  /** When modal closes */
+  const closeModal = (refresh) => {
+    setIsModalOpen(false);
+
+    if (refresh) fetchPeople();
+  };
+
+  if (loading) return <p>Loading...</p>;
 
   return (
-    <div className="container py-4 people-page">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>People</h2>
+    <>
+      <div className="d-flex justify-content-between mb-3">
+        <h3>People</h3>
         <button className="btn btn-primary" onClick={openNewModal}>
-          + New Person
+          Add Person
         </button>
       </div>
 
-      {loading ? (
-        <p>Loading…</p>
-      ) : (
-        <table className="table table-striped align-middle">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Birth Year</th>
-              <th style={{ width: "140px" }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {people.map((p) => (
-              <tr key={p.id}>
-                <td>{p.name}</td>
-                <td>{p.birth_year ?? "—"}</td>
-                <td>
+      <table className="table table-striped">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Birth Year</th>
+            <th className="text-end" style={{ width: "1%" }}></th>
+          </tr>
+        </thead>
+        <tbody>
+          {people.map((p) => (
+            <tr key={p.id}>
+              <td>{p.name}</td>
+              <td>{p.birth_year ?? "—"}</td>
+              <td className="text-end">
+                <div className="d-flex flex-nowrap justify-content-end gap-1">
                   <button
-                    className="btn btn-sm btn-secondary me-2"
+                    className="btn btn-sm btn-secondary bi-eye"
+                    data-bs-toggle="tooltip"
+                    title="View Person"
+                    onClick={() => openViewModal(p)}
+                  ></button>
+                  <button
+                    className="btn btn-sm btn-secondary bi-pencil"
+                    data-bs-toggle="tooltip"
+                    title="Edit Person"
                     onClick={() => openEditModal(p)}
-                  >
-                    Edit
-                  </button>
+                  ></button>
                   <button
-                    className="btn btn-sm btn-danger"
+                    className="btn btn-sm btn-secondary bi-copy"
+                    data-bs-toggle="tooltip"
+                    title="Copy Person"
+                    onClick={() => openCopyModal(p)}
+                  ></button>
+                  <button
+                    className="btn btn-sm btn-danger bi-trash"
+                    data-bs-toggle="tooltip"
+                    title="Delete Person"
                     onClick={() => handleDelete(p.id)}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
+                  ></button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
-            {people.length === 0 && (
-              <tr>
-                <td colSpan="3" className="text-center py-3">
-                  No people found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      )}
-
-      <PeopleModal person={selectedPerson} onSave={fetchPeople} />
-    </div>
+      <PeopleModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        person={selectedPerson}
+        mode={modalMode}
+      />
+    </>
   );
 }

@@ -1,0 +1,40 @@
+.income-statement-table td,
+.income-statement-table th,
+.report-table td,
+.report-table th {
+  vertical-align: middle;
+}
+
+.income-statement-section-title,
+.report-section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.income-statement-total-row td,
+.report-total-row td {
+  border-top: 2px solid var(--bs-border-color);
+  font-weight: 600;
+}
+
+.income-statement-net-income,
+.report-summary-label {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.report-balanced-badge {
+  font-size: 0.95rem;
+  padding: 0.45em 0.75em;
+}
+
+.report-balanced-badge-compact {
+  font-size: 0.7rem;
+  padding: 0.25em 0.45em;
+  font-weight: 500;
+}
+
+.report-period-col {
+  min-width: 7.5rem;
+  white-space: nowrap;
+}

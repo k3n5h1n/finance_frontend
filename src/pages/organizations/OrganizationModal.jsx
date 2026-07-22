@@ -1,197 +1,174 @@
-// src/pages/organizations/OrganizationModal.jsx
-import React, { useEffect, useState } from 'react';
-import { Modal } from 'bootstrap';
-import { validateOrganization } from '../../utils/validation';
-import { ORG_API } from './apiConfig';   // <-- ADD THIS
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  ORGANIZATION_TYPES,
+  organizationSchema,
+  organizationToFormValues,
+  formValuesToPayload,
+} from "../../utils/validation/organizationSchema";
+import {
+  createOrganization,
+  updateOrganization,
+  deleteOrganization,
+} from "./organizationsApi";
+import { useEscapeToClose } from "../../hooks/useEscapeToClose";
 
-export default function OrganizationModal({ organization, onSave }) {
-  const initialForm = { name: '', description: '', type: 'family' };
+export default function OrganizationModal({
+  isOpen,
+  onClose,
+  organization,
+  mode,
+}) {
+  const isEdit = mode === "edit";
+  const isView = mode === "view";
+  const isAdd = mode === "add";
 
-  const [form, setForm] = useState(initialForm);
-  const [errors, setErrors] = useState({});
-  const [isValid, setIsValid] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting, isValid, isDirty },
+  } = useForm({
+    resolver: zodResolver(organizationSchema),
+    mode: "onChange",
+    reValidateMode: "onChange",
+    defaultValues: organizationToFormValues(null),
+  });
+
+  useEscapeToClose(isOpen, () => onClose(false));
 
   useEffect(() => {
-    if (organization) {
-      setForm({
-        name: organization.name || '',
-        description: organization.description || '',
-        type: organization.type || 'family',
-      });
-    } else {
-      setForm(initialForm);
-    }
-    setErrors({});
-    setIsDirty(false);
-  }, [organization]);
+    reset(organizationToFormValues(organization));
+  }, [organization, reset]);
 
-  useEffect(() => {
-    const { isValid, errors } = validateOrganization(form);
-    setIsValid(isValid);
-    setErrors(errors);
-  }, [form]);
+  if (!isOpen) return null;
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    setIsDirty(true);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const { isValid } = validateOrganization(form);
-    if (!isValid) return;
-
-    setIsSaving(true);
-
-    // ✅ FIX: Use ORG_API configuration instead of hardcoded /api endpoints
-    const method = organization ? 'PUT' : 'POST';
-    const url = organization
-      ? ORG_API.DETAIL(organization.id)
-      : ORG_API.LIST;
-
+  const onSubmit = async (data) => {
     try {
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      if (!res.ok) throw new Error('Failed to save');
-
-      const modalEl = document.getElementById('organizationModal');
-      const modal = Modal.getInstance(modalEl);
-      modal.hide();
-
-      setForm(initialForm);
-      setIsDirty(false);
-      onSave();
-    } catch (err) {
-      console.error('Save failed:', err);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleCancel = (e) => {
-    if (isDirty) {
-      const confirmDiscard = window.confirm(
-        'You have unsaved changes. Discard them?'
-      );
-      if (!confirmDiscard) {
-        e.preventDefault();
-        return;
+      const payload = formValuesToPayload(data);
+      if (isEdit) {
+        await updateOrganization(organization.id, payload);
+      } else {
+        await createOrganization(payload);
       }
+      onClose(true);
+    } catch (err) {
+      console.error("Save failed", err);
+      alert(err.message ?? "Error saving organization.");
     }
-    setForm(initialForm);
-    setErrors({});
-    setIsValid(false);
-    setIsDirty(false);
   };
 
-  useEffect(() => {
-    const modalEl = document.getElementById('organizationModal');
-    const resetOnHide = () => {
-      setForm(initialForm);
-      setErrors({});
-      setIsValid(false);
-      setIsDirty(false);
-    };
-    modalEl.addEventListener('hidden.bs.modal', resetOnHide);
-    return () => modalEl.removeEventListener('hidden.bs.modal', resetOnHide);
-  }, []);
+  const handleDelete = async () => {
+    try {
+      await deleteOrganization(organization.id);
+      onClose(true);
+    } catch (err) {
+      console.error("Deletion failed", err);
+      alert("Error deleting organization.");
+    }
+  };
 
   return (
     <div
-      className="modal fade"
-      id="organizationModal"
+      className="modal show d-block"
       tabIndex="-1"
-      aria-labelledby="organizationModalLabel"
-      aria-hidden="true"
+      aria-modal="true"
+      role="dialog"
     >
-      <div className="modal-dialog modal-dialog-centered modal-lg">
+      <div className="modal-dialog">
         <div className="modal-content">
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="modal-header">
+              <h5 className="modal-title">
+                {isEdit
+                  ? "Edit Organization"
+                  : isAdd
+                    ? "Add New Organization"
+                    : "View Organization"}
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                onClick={() => onClose(false)}
+              />
+            </div>
 
-          <div className="modal-header">
-            <h5 className="modal-title" id="organizationModalLabel">
-              {organization ? 'Edit Organization' : 'New Organization'}
-            </h5>
-            <button
-              type="button"
-              className="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-              onClick={handleCancel}
-            ></button>
-          </div>
-
-          <form onSubmit={handleSubmit} noValidate>
             <div className="modal-body">
-
               <div className="mb-3">
                 <label className="form-label">Name</label>
                 <input
-                  type="text"
-                  className={`form-control ${errors.name ? 'is-invalid' : ''}`}
-                  name="name"
-                  value={form.name}
-                  onChange={handleChange}
+                  className={`form-control ${errors.name ? "is-invalid" : isDirty ? "is-valid" : ""}`}
+                  disabled={isView}
+                  {...register("name")}
                 />
                 {errors.name && (
-                  <div className="invalid-feedback">{errors.name}</div>
+                  <div className="invalid-feedback">{errors.name.message}</div>
                 )}
               </div>
 
               <div className="mb-3">
                 <label className="form-label">Description</label>
                 <textarea
-                  className={`form-control ${
-                    errors.description ? 'is-invalid' : ''
-                  }`}
-                  name="description"
-                  value={form.description}
-                  onChange={handleChange}
-                  rows="3"
-                ></textarea>
+                  className={`form-control ${errors.description ? "is-invalid" : ""}`}
+                  rows={3}
+                  disabled={isView}
+                  {...register("description")}
+                />
                 {errors.description && (
-                  <div className="invalid-feedback">{errors.description}</div>
+                  <div className="invalid-feedback">
+                    {errors.description.message}
+                  </div>
                 )}
               </div>
 
               <div className="mb-3">
                 <label className="form-label">Type</label>
                 <select
-                  className="form-select"
-                  name="type"
-                  value={form.type}
-                  onChange={handleChange}
+                  className={`form-select ${errors.type ? "is-invalid" : ""}`}
+                  disabled={isView}
+                  {...register("type")}
                 >
-                  <option value="family">Family</option>
-                  <option value="business">Business</option>
-                  <option value="charity">Charity</option>
+                  {ORGANIZATION_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </option>
+                  ))}
                 </select>
+                {errors.type && (
+                  <div className="invalid-feedback">{errors.type.message}</div>
+                )}
               </div>
             </div>
 
             <div className="modal-footer">
               <button
                 type="button"
-                className="btn btn-secondary"
-                data-bs-dismiss="modal"
-                onClick={handleCancel}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={!isValid || isSaving}
-              >
-                {isSaving ? 'Saving…' : 'Save'}
-              </button>
+                className="btn btn-secondary bi-x-circle"
+                data-bs-toggle="tooltip"
+                title="Cancel"
+                onClick={() => onClose(false)}
+              ></button>
+              {!isView && organization?.id != null && (
+                <button
+                  type="button"
+                  className="btn btn-danger me-auto bi-trash"
+                  data-bs-toggle="tooltip"
+                  title="Delete Organization"
+                  onClick={handleDelete}
+                  disabled={isSubmitting}
+                ></button>
+              )}
+              {!isView && (
+                <button
+                  type="submit"
+                  className="btn btn-primary bi-save"
+                  data-bs-toggle="tooltip"
+                  title={isEdit ? "Save Changes" : "Create Organization"}
+                  disabled={!isDirty || !isValid || isSubmitting}
+                ></button>
+              )}
             </div>
-
           </form>
         </div>
       </div>

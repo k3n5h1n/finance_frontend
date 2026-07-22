@@ -15,6 +15,11 @@ import './App.css';
 // ✅ Bootstrap JS bundle (for modals, dropdowns, etc.)
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
+// Sync custom theme vars and Bootstrap color mode on load
+const initialTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+document.documentElement.setAttribute('data-theme', initialTheme);
+document.documentElement.setAttribute('data-bs-theme', initialTheme);
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <App />

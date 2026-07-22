@@ -1,0 +1,6 @@
+/* src/pages/suppliers/suppliers.css */
+
+.suppliers-page .table td,
+.suppliers-page .table th {
+  vertical-align: middle;
+}

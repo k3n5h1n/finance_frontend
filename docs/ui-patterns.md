@@ -43,8 +43,17 @@ Standard CRUD modals:
 | Add / edit | React Hook Form + Zod |
 | Success | `onClose(true)` → parent refetches |
 | Cancel | `onClose(false)` |
+| Escape | `useEscapeToClose(isOpen, () => onClose(false))` closes without saving |
 
 Bootstrap modal structure: `modal show d-block` overlay (no separate backdrop component in most modals).
+
+### Escape to close
+
+All entity modals and `AppDialog` dismiss on Escape via `useEscapeToClose` (`src/hooks/useEscapeToClose.js`).
+
+- Entity / data-entry modals: Escape = cancel (`onClose(false)` / `onClose()`), same as the cancel button
+- `AppDialog`: Escape = cancel / dismiss
+- Nested overlays stack (LIFO); Escape closes the topmost open layer only (e.g. confirm dialog above a form modal)
 
 ## List pages
 
@@ -60,10 +69,12 @@ Common structure:
 
 **Events list** is the reference implementation for server-driven lists.
 
-1. **Filter card** — filter controls above the table; changes reset to page 1 and refetch
-2. **Debounced text search** — description filter waits ~400ms before applying
-3. **Pagination** — `ListPagination` component above and below the table
-4. **API** — `listEvents(orgId, filters)` sends query params; response normalized via `normalizePaginatedListResponse`
+1. **Informational URL** — filters and pagination live in the query string (see [Informational URLs](#informational-urls-list-filters))
+2. **Filter card** — filter controls above the table; changes reset to page 1 and refetch
+3. **Debounced text search** — description filter waits ~400ms before writing the URL param
+4. **Status filter** — `draft` / `posted` / all (omit param); other filters: dates, supplier
+5. **Pagination** — `ListPagination` component above and below the table
+6. **API** — `listEvents(orgId, filters)` sends query params; response normalized via `normalizePaginatedListResponse`
 
 Reusable pieces:
 
@@ -71,10 +82,34 @@ Reusable pieces:
 |-------|----------|
 | `ListPagination` | `src/components/ListPagination.jsx` |
 | `normalizePaginatedListResponse` | `src/utils/paginatedList.js` |
+| `listSearchParams` helpers | `src/utils/listSearchParams.js` |
 
 When adding pagination to another list, wire `page_number` / `page_size` in `*Api.js` and reuse `ListPagination` with the same envelope shape.
 
 **Events list** also supports replicate via `ReplicateEventModal`.
+
+## Informational URLs (list filters)
+
+**Standard for this app:** list filters and pagination belong in the URL query string, not only in component state. Apply the same pattern when adding filters or list→detail flows elsewhere.
+
+### Why
+
+- List → detail → back restores the same filtered view (browser history)
+- Sidebar links to the bare path (e.g. `/accounting/events`) start fresh
+- Refresh and shareable URLs work without a global store
+- Matches existing drill-through links (e.g. Account History `?account=…`)
+
+### Conventions
+
+1. **URL is source of truth** for applied filters and page — derive UI from `useSearchParams`
+2. **Param names match the API** where possible (`description_contains`, `status`, `page_number`, …)
+3. **Omit empty and default values** (`page_number=1`, default `page_size`) so URLs stay clean — use `patchListSearchParams` / `clearListSearchParams`
+4. **Replace history** on filter/page changes (`replace: true`) so tweaking filters does not stack history entries
+5. **Debounced text** — keep a local input; write the query param after debounce
+6. **Org change** — clear list search params when `selectedOrganizationId` changes
+7. **Detail back** — navigate from the source list with location state (`fromEventsList`, `fromAccountHistory`, …); Back uses `navigate(-1)` when that flag is set (restores the informational URL), otherwise a sensible bare fallback path. Label the link for the source (“Back to transactions”, “Back to account history”).
+
+References: `EventsList.jsx`, `AccountHistory.jsx`, `EventWorkspace` Back link.
 
 ## Expandable tree tables
 
@@ -92,9 +127,9 @@ Shared styles: `accounts.css` tree classes; reports use `reportComponents.jsx`.
 
 Multi-level document UI on one page:
 
-- Header card: event metadata + actions (edit, replicate, **post event**, delete, add group)
+- Header card: event metadata (status, type, internal/external) + actions (edit, replicate, **post event**, delete, add group)
 - Sections per entry group with entries as cards; group header has **post group**
-- Entry lines in table; line items in expandable sub-row
+- Entry lines in table; line resources in expandable sub-row
 - Each level has its own modal component
 
 After any mutation, **reload full event** via `getEvent` — do not patch local tree incrementally unless you add optimistic update logic deliberately.
@@ -120,14 +155,15 @@ Reports → Account History:
 
 Income statement passes both dates; balance sheet passes `end_date` only.
 
-Account History reads `useSearchParams()` on load and passes dates to `getAccountHistory`.
+Account History keeps `account`, `start_date`, and `end_date` in the URL (informational URLs) and passes them to `getAccountHistory`. Event links use `state: { fromAccountHistory: true }` so the workspace Back link returns to Account History with those params intact.
 
-Events list/workspace → event detail:
+Events list / Account History → event detail:
 
 ```
 /accounting/events/{eventId}
 ```
 
+Back navigation depends on `location.state` (`fromEventsList` vs `fromAccountHistory`).
 ## Responsive behavior
 
 Pattern used where mobile matters:

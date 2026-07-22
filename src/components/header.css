@@ -24,8 +24,7 @@
 
 .theme-toggle-btn {
   font-size: 20px;
-  margin-left: auto;
-  margin-right: 15px;
+  margin-right: 12px;
   cursor: pointer;
   color: var(--color-text-muted);
   transition: color var(--transition-fast);
@@ -33,4 +32,16 @@
 
 .theme-toggle-btn:hover {
   color: var(--color-primary);
+}
+
+.header-controls {
+  margin-right: 15px;
+}
+
+.org-selector {
+  min-width: 180px;
+  max-width: 260px;
+  background-color: var(--color-bg-muted);
+  color: var(--color-text);
+  border-color: var(--color-border);
 }

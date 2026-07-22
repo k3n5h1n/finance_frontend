@@ -112,8 +112,9 @@ Query parameters (when supported):
 | `entries_start_on_or_after` | Event `entries_start` ≥ date (`YYYY-MM-DD`)           |
 | `entries_end_on_or_before`  | Event `entries_end` ≤ date                            |
 | `supplier_id`               | Events with at least one line for that supplier       |
+| `status`                    | `draft` or `posted`; omit for all statuses            |
 
-Implemented in `listEvents(organizationId, filters)` via `buildEventsListQuery()`. Other list pages should follow the same param names where applicable.
+Implemented in `listEvents(organizationId, filters)` via `buildEventsListQuery()`. The Transactions list mirrors these as **URL query params** (informational URLs — see [UI patterns](./ui-patterns.md#informational-urls-list-filters)). Other list pages should follow the same param names where applicable.
 
 ## Backend URL conventions (accounting)
 
@@ -126,8 +127,8 @@ Paths use **underscores** in segment names. Trailing slashes differ by endpoint 
 | Entry group detail         | `/accounting/entry_groups/{id}/` (with slash)                                                                  |
 | Nested create              | `/accounting/events/{id}/entry_groups` (no trailing slash)                                                     |
 | Entry line create          | `/accounting/entries/{id}/entries`                                                                             |
-| Line item create           | `/accounting/entry_lines/{id}/line_items`                                                                      |
-| Line item update/delete    | `/accounting/line_items/{id}/`                                                                                 |
+| Line resource create        | `/accounting/entry_lines/{id}/line_resources`                                                                  |
+| Line resource update/delete | `/accounting/line_resources/{id}/`                                                                             |
 
 **Rule:** Confirm create vs detail URLs separately. Nested collection names may differ from the shallow resource name (e.g. entry lines created under `entries`, updated under `entry_lines`).
 
@@ -140,10 +141,10 @@ Paths use **underscores** in segment names. Trailing slashes differ by endpoint 
 
 Query parameters (GET only — no JSON body):
 
-- `fiscal_year` (integer)
-- `posted_only` (`true` / `false` string)
+- Income statement: `fiscal_year` (integer), `posted_only` (`true` / `false` string)
+- Balance sheet: repeated `fiscal_years` (integers), `posted_only`
 
-Future reports should follow the same `/accounting/reports/<report_name>/` pattern.
+Balance sheet response shape: `{ periods: [...], rows: [{ account, balances: [...] }] }` with optional top-level `posted_only`. UI reorders periods newest-first for display.
 
 ## Posting (entries, groups, events)
 

@@ -1,188 +1,149 @@
-// src/pages/people/peopleModal.jsx
+// src/components/PeopleModal.jsx
 
-import React, { useEffect, useState } from "react";
-import { Modal } from "bootstrap";
-import { validatePerson } from "../../utils/validation";
-import { PEOPLE_API } from "./apiConfig";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { personSchema } from "../../utils/validation/personSchema";
+import { createPerson, updatePerson, deletePerson } from "./peopleApi";
+import { useEscapeToClose } from "../../hooks/useEscapeToClose";
 
-export default function PeopleModal({ person, onSave }) {
-  const initialForm = { name: "", birth_year: "" };
+export default function PeopleModal({ isOpen, onClose, person, mode}) {
+  // const isEdit = Boolean(person?.id);
+  const isEdit = mode === "edit";
+  const isView = mode === "view";
+  const isAdd = mode === "add";
+  
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting, isValid, isDirty },
+  } = useForm({
+    resolver: zodResolver(personSchema),
+    mode: "onChange",
+    reValidateMode: "onChange",
+    defaultValues: {
+      name: "",
+      birth_year: "",
+    },
+  });
 
-  const [form, setForm] = useState(initialForm);
-  const [errors, setErrors] = useState({});
-  const [isValid, setIsValid] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  useEscapeToClose(isOpen, () => onClose(false));
 
+  /** Populate form for editing or clear for new person */
   useEffect(() => {
-    if (person) {
-      setForm({
-        name: person.name || "",
-        birth_year: person.birth_year ?? "",
-      });
-    } else {
-      setForm(initialForm);
-    }
-    setErrors({});
-    setIsDirty(false);
-  }, [person]);
+    reset({
+      name: person?.name ?? "",
+      birth_year: person?.birth_year ?? "",
+    });
+  }, [person, reset]);
 
-  useEffect(() => {
-    const { isValid, errors } = validatePerson(form);
-    setIsValid(isValid);
-    setErrors(errors);
-  }, [form]);
+  /** If modal not open, render nothing */
+  if (!isOpen) return null;
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    setIsDirty(true);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const { isValid } = validatePerson(form);
-    if (!isValid) return;
-
-    setIsSaving(true);
-
-    const method = person ? "PUT" : "POST";
-    const url = person ? PEOPLE_API.DETAIL(person.id) : PEOPLE_API.LIST;
-
+  const onSubmit = async (data) => {
     try {
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          birth_year:
-            form.birth_year === "" ? null : Number(form.birth_year),
-        }),
-      });
-
-      if (!res.ok) throw new Error("Failed to save person");
-
-      const modal = Modal.getInstance(document.getElementById("peopleModal"));
-      modal.hide();
-
-      setForm(initialForm);
-      setIsDirty(false);
-      onSave();
-    } catch (err) {
-      console.error("Save failed:", err);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleCancel = (e) => {
-    if (isDirty) {
-      const confirmed = window.confirm(
-        "You have unsaved changes. Discard them?"
-      );
-      if (!confirmed) {
-        e.preventDefault();
-        return;
+      if (isEdit) {
+        await updatePerson(person.id, data);
+      } else {
+        await createPerson(data);
       }
+      onClose(true); // success
+    } catch (err) {
+      console.error("Save failed", err);
+      alert("Error saving person.");
     }
-    setForm(initialForm);
-    setErrors({});
-    setIsValid(false);
-    setIsDirty(false);
   };
 
-  useEffect(() => {
-    const el = document.getElementById("peopleModal");
-    const reset = () => {
-      setForm(initialForm);
-      setErrors({});
-      setIsValid(false);
-      setIsDirty(false);
-    };
-    el.addEventListener("hidden.bs.modal", reset);
-    return () => el.removeEventListener("hidden.bs.modal", reset);
-  }, []);
+  const handleDelete = async () => {
+    try {
+      await deletePerson(person.id);
+      onClose(true); // success
+    } catch (err) {
+      console.error("Deletion failed", err);
+      alert("Error deleting person.");
+    }
+  };
 
   return (
-    <div
-      className="modal fade"
-      id="peopleModal"
-      tabIndex="-1"
-      aria-labelledby="peopleModalLabel"
-      aria-hidden="true"
-    >
-      <div className="modal-dialog modal-dialog-centered">
+    <div className="modal show d-block" tabIndex="-1" aria-modal="true" role="dialog">
+      <div className="modal-dialog">
         <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title" id="peopleModalLabel">
-              {person ? "Edit Person" : "New Person"}
-            </h5>
-            <button
-              type="button"
-              className="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-              onClick={handleCancel}
-            ></button>
-          </div>
 
-          <form onSubmit={handleSubmit} noValidate>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            
+            {/* Header */}
+            <div className="modal-header">
+              <h5 className="modal-title">
+                {isEdit ? "Edit Person" : isAdd ? "Add New Person": "View Person"}
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                onClick={() => onClose(false)}
+              />
+            </div>
+
+            {/* Body */}
             <div className="modal-body">
+              
               {/* Name */}
               <div className="mb-3">
                 <label className="form-label">Name</label>
                 <input
-                  type="text"
-                  name="name"
-                  className={`form-control ${errors.name ? "is-invalid" : ""}`}
-                  value={form.name}
-                  onChange={handleChange}
+                  className={`form-control ${errors.name ? "is-invalid" : isDirty ? "is-valid" : ""}`}
+                  disabled={isView}
+                  {...register("name")}
                 />
                 {errors.name && (
-                  <div className="invalid-feedback">{errors.name}</div>
+                  <div className="invalid-feedback">{errors.name.message}</div>
                 )}
               </div>
 
-              {/* Birth year */}
+              {/* Birth Year */}
               <div className="mb-3">
-                <label className="form-label">Birth Year</label>
+                <label className="form-label">Birth Year (optional)</label>
                 <input
-                  type="number"
-                  name="birth_year"
-                  className={`form-control ${
-                    errors.birth_year ? "is-invalid" : ""
-                  }`}
-                  value={form.birth_year}
-                  onChange={handleChange}
-                  min="1900"
-                  max={new Date().getFullYear()}
+                  className={`form-control ${errors.birth_year ? "is-invalid" : isDirty ? "is-valid" : ""}`}
+                  disabled={isView}
+                  {...register("birth_year")}
                 />
                 {errors.birth_year && (
-                  <div className="invalid-feedback">{errors.birth_year}</div>
+                  <div className="invalid-feedback">{errors.birth_year.message}</div>
                 )}
-                <div className="form-text">
-                  Leave blank if unknown.
-                </div>
               </div>
+
             </div>
 
+            {/* Footer */}
             <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                data-bs-dismiss="modal"
-                onClick={handleCancel}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={!isValid || isSaving}
-              >
-                {isSaving ? "Saving…" : "Save"}
-              </button>
+              <button 
+                type="button" 
+                className="btn btn-secondary bi-x-circle"
+                data-bs-toggle="tooltip"
+                title="Cancel" 
+                onClick={() => onClose(false)}
+              ></button>
+              {!isView && person?.id && (
+                <button
+                  type="button"
+                  className="btn btn-danger me-auto bi-trash"
+                  data-bs-toggle="tooltip"
+                  title="Delete Person" 
+                  onClick={handleDelete}
+                  disabled={isSubmitting}
+                ></button>
+              )}
+              {!isView && (
+                <button 
+                  type="submit" 
+                  className="btn btn-primary bi-save"
+                  data-bs-toggle="tooltip"
+                  title={isEdit ? "Save Changes" : "Create Person"}
+                  disabled={!isDirty || !isValid || isSubmitting}
+                >
+                </button>
+              )}
             </div>
           </form>
         </div>

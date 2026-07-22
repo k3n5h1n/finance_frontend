@@ -15,3 +15,41 @@
     font-size: 0.9rem;
   }
 }
+
+.associated-section {
+  margin-top: 20px;
+  padding-top: 10px;
+  border-top: 1px solid #ddd;
+}
+
+.associated-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 12px;
+}
+
+.associated-table th,
+.associated-table td {
+  border-bottom: 1px solid #eee;
+  padding: 6px;
+  text-align: left;
+}
+
+.associated-table input {
+  width: 100%;
+}
+
+.add-person-row {
+  display: flex;
+  gap: 8px;
+}
+
+.add-person-row select,
+.add-person-row input {
+  flex: 1;
+}
+
+.empty-row {
+  text-align: center;
+  color: #888;
+}

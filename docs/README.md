@@ -10,7 +10,7 @@ This folder documents how the application is structured and the conventions to f
 | [API handling](./api-handling.md) | `orgFetch`, proxies, `apiConfig`, errors, backend URL conventions |
 | [Styling](./styling.md) | Bootstrap, themes, CSS variables, page styles, icons |
 | [Forms and validation](./forms-and-validation.md) | React Hook Form, Zod schemas, Marshmallow payload rules |
-| [UI patterns](./ui-patterns.md) | Modals, dialogs, lists, filters, pagination, trees, responsive layouts |
+| [UI patterns](./ui-patterns.md) | Modals, dialogs, lists, informational URLs, filters, pagination, trees, responsive layouts |
 | [Accounting domain](./accounting-domain.md) | Transaction hierarchy, reports, accounts, editability rules |
 
 ## Quick start

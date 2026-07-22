@@ -17,7 +17,7 @@ eventSchema.js
 entrySchema.js
 entryLineSchema.js
 entryGroupSchema.js
-lineItemSchema.js
+lineResourceSchema.js
 accountSchema.js
 supplierSchema.js
 personSchema.js
@@ -72,7 +72,7 @@ const onSubmit = async (data) => {
 
 - `z.coerce.number()` for numeric inputs
 - Optional nullable strings with `.transform(val => val === "" ? null : val)` for optional API nulls
-- `z.enum([...])` for fixed sets (account type, entry group type)
+- `z.enum([...])` for fixed sets (account type, entry group type, event type)
 - Custom error messages on constraints (`min(1, "Description is required")`)
 
 ## Marshmallow alignment

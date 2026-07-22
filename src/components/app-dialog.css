@@ -1,0 +1,7 @@
+.app-dialog {
+  z-index: 1060;
+}
+
+.app-dialog-backdrop {
+  z-index: 1055;
+}
