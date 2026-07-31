@@ -19,6 +19,7 @@ entryLineSchema.js
 entryGroupSchema.js
 lineResourceSchema.js
 accountSchema.js
+resourceSchema.js
 supplierSchema.js
 personSchema.js
 organizationSchema.js

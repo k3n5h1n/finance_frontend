@@ -20,7 +20,7 @@ Event
 | Entry group | `description`, `type`, `display_order` | Types: primary, adjustment, accrual, reversal |
 | Entry | `date`, `description`, `is_posted`, `display_order` | Posted entries are immutable in UI |
 | Entry line | `account`, `supplier`, `debit`, `credit`, `display_order` | Exactly one of debit/credit non-zero |
-| Line resource | `description`, `quantity`, `unit_measure`, `unit_amount`, `extended_amount` | Optional breakdown of line amount |
+| Line resource | `description`, `quantity`, `unit_measure`, `unit_amount`, `extended_amount`, optional `resource_id` | Optional breakdown of line amount; may link to setup catalog `/resources/`. Quantity may be negative; `extended_amount = abs(quantity × unit_amount)` |
 
 ### Reading data
 
@@ -141,13 +141,28 @@ Ledger columns show em dash for zero debit/credit in history tables.
 | Event logic | `eventUtils.js` |
 | List pagination | `components/ListPagination.jsx`, `utils/paginatedList.js` |
 | Accounts | `accountsApi.js`, `accountTree.js`, `AccountHistory.jsx` |
+| Resources | `pages/resources/resourcesApi.js`, `ResourcesList.jsx`, `ResourceModal.jsx` |
 | Reports | `reportsApi.js`, `IncomeStatement.jsx`, `BalanceSheet.jsx`, `reportComponents.jsx` |
 | Validation | `src/utils/validation/*Schema.js` |
+
+## Resources (setup catalog)
+
+Org-scoped catalog at `/resources/` (distinct from accounting **line resources** on entry lines).
+
+| Field | Notes |
+|-------|--------|
+| `name`, `type`, `is_active` | Types: `ITEM`, `INSTRUMENT`, `SERVICE`, `PROPERTY` |
+| `item` | Present when `type === "ITEM"`: `tracks_quantity`, optional `default_units` |
+
+List endpoint has no filters/pagination yet; UI sorts client-side by name.
+
+Accounting line resources may optionally set `resource_id` to a catalog resource. Selecting an Item populates line `description` and `unit_measure` from the catalog defaults; those values are stored on the line resource and remain editable without updating the catalog. Unlinking clears `resource_id` but keeps the copied fields. Only Item is supported in the link UI for now.
 
 ## Future backend features (UI hooks ready or planned)
 
 - `posted_only` on reports — implemented in UI
 - Account history pagination — query params in `getAccountHistory`, no list UI yet
-- Paginated lists (suppliers, accounts, etc.) — reuse `ListPagination` + `normalizePaginatedListResponse` (events list is the reference)
+- Paginated lists (suppliers, accounts, resources, etc.) — reuse `ListPagination` + `normalizePaginatedListResponse` (events list is the reference)
 - Own vs children balance on reports — API may add; UI shows rolled-up only today
 - Cashflow statement — follow same report pattern as income/balance sheet
+- Resource list filters/pagination — API planned; UI not yet

@@ -29,6 +29,7 @@ src/
 │   ├── organizations/
 │   ├── people/
 │   ├── reports/
+│   ├── resources/       # Setup catalog (ITEM, etc.)
 │   └── suppliers/
 ├── styles/              # variables.css (theme tokens)
 └── utils/               # orgRequest, paginatedList, listSearchParams, validation schemas
@@ -61,7 +62,7 @@ Routes are declared in `App.jsx`. Navigation structure is duplicated in `src/dat
 
 | Area | Example paths |
 |------|----------------|
-| Setup | `/setup/organizations`, `/setup/people`, `/setup/accounts` |
+| Setup | `/setup/organizations`, `/setup/people`, `/setup/accounts`, `/setup/resources` |
 | Accounting | `/accounting/events`, `/accounting/events/:eventId`, `/accounting/account-history`, `/accounting/suppliers` |
 | Reports | `/accounting/reports/income-statement`, `/accounting/reports/balance-sheet` |
 

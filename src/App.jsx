@@ -11,6 +11,7 @@ import { OrganizationProvider, useOrganization } from './context/OrganizationCon
 import OrganizationsList from './pages/organizations/OrganizationsList';
 import PeopleList from './pages/people/PeopleList';
 import AccountsList from './pages/accounts/AccountsList';
+import ResourcesList from './pages/resources/ResourcesList';
 import SuppliersList from './pages/suppliers/SuppliersList';
 import EventsList from './pages/events/EventsList';
 import EventWorkspace from './pages/events/EventWorkspace';
@@ -51,6 +52,7 @@ function AppLayout() {
               <Route path="/setup/organizations" element={<OrganizationsList />} />
               <Route path="/setup/people" element={<PeopleList />} />
               <Route path="/setup/accounts" element={<AccountsList />} />
+              <Route path="/setup/resources" element={<ResourcesList />} />
               <Route path="/accounting/suppliers" element={<SuppliersList />} />
               <Route path="/accounting/events" element={<EventsList />} />
               <Route path="/accounting/events/:eventId" element={<EventWorkspace />} />

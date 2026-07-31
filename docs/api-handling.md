@@ -6,7 +6,7 @@ The app uses **two base URL strategies**:
 
 ### 1. Organization-scoped APIs (`orgFetch`)
 
-Used for: accounts, suppliers, accounting (events, reports), and anything that requires `X-Organization-Id`.
+Used for: accounts, suppliers, resources, accounting (events, reports), and anything that requires `X-Organization-Id`.
 
 ```javascript
 import { orgFetch } from "../../utils/orgRequest";
@@ -132,12 +132,42 @@ Paths use **underscores** in segment names. Trailing slashes differ by endpoint 
 
 **Rule:** Confirm create vs detail URLs separately. Nested collection names may differ from the shallow resource name (e.g. entry lines created under `entries`, updated under `entry_lines`).
 
+### Accounting line resources
+
+Nested under an entry line; distinct from the setup **catalog** at `/resources/`.
+
+| Field | Notes |
+|-------|--------|
+| `description` | Required in UI; may be defaulted from a linked catalog item’s `name` |
+| `quantity`, `unit_amount`, `extended_amount` | Quantity may be negative (not zero). UI sets `extended_amount = abs(quantity × unit_amount)` |
+| `unit_measure` | Optional; may be defaulted from catalog item `default_units` |
+| `display_order` | Required on create/update |
+| `resource_id` | Optional FK to setup `/resources/{id}`; send `null` to unlink |
+
+**Linking behavior (UI):** toggle “Link to catalog resource” → type (Item only for now) → active Item dropdown. Selecting an item populates `description` and `unit_measure` as editable defaults on the **line resource** only — the catalog record is never updated. Unlinking sets `resource_id: null` and leaves the text fields unchanged.
+
+**Replicate:** `POST /accounting/events/{id}/replicate` with `include_line_resources` (boolean). Do not use `include_resources` — it is accepted but does not copy line resources.
+
 ## Reports
 
 | Report           | Endpoint                                    |
 | ---------------- | ------------------------------------------- |
 | Income statement | `GET /accounting/reports/income_statement/` |
 | Balance sheet    | `GET /accounting/reports/balance_sheet/`    |
+
+### Resources (setup catalog)
+
+| Operation | Endpoint |
+|-----------|----------|
+| List / create | `GET`/`POST /resources/` |
+| Detail / update / delete | `GET`/`PUT`/`DELETE /resources/{id}` (no trailing slash) |
+
+| Field | Notes |
+|-------|--------|
+| `name`, `type`, `is_active` | Types: `ITEM`, `INSTRUMENT`, `SERVICE`, `PROPERTY` |
+| `item` | When `type === "ITEM"`: required `tracks_quantity`, optional `default_units` |
+
+List has no filters/pagination yet (planned). Org-scoped via `X-Organization-Id`. Used by the Setup → Resources UI and as the optional link target for accounting line resources (`resource_id`).
 
 Query parameters (GET only — no JSON body):
 
