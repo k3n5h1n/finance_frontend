@@ -257,10 +257,10 @@ function FiscalYearChecks({
   onPostedOnlyChange,
 }) {
   return (
-    <div className="row g-3 align-items-end">
+    <div className="row g-3 align-items-start">
       <div className="col-md-8">
         <div className="form-label">Fiscal years</div>
-        <div className="d-flex flex-wrap gap-3">
+        <div className="d-flex flex-wrap gap-3 report-filter-check-field">
           {[...FISCAL_YEAR_OPTIONS].sort((a, b) => b - a).map((year) => (
             <div className="form-check mb-0" key={year}>
               <input
@@ -284,7 +284,10 @@ function FiscalYearChecks({
         </div>
       </div>
       <div className="col-md-4">
-        <div className="form-check mb-0">
+        <label className="form-label" htmlFor="balance-sheet-posted-only">
+          Posted only
+        </label>
+        <div className="form-check report-filter-check">
           <input
             className="form-check-input"
             type="checkbox"
@@ -292,12 +295,6 @@ function FiscalYearChecks({
             checked={postedOnly}
             onChange={(e) => onPostedOnlyChange(e.target.checked)}
           />
-          <label
-            className="form-check-label"
-            htmlFor="balance-sheet-posted-only"
-          >
-            Posted only
-          </label>
         </div>
       </div>
     </div>

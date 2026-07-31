@@ -137,7 +137,7 @@ export default function IncomeStatement() {
 
       <div className="card mb-4">
         <div className="card-body">
-          <div className="row g-3 align-items-end">
+          <div className="row g-3 align-items-start">
             <div className="col-sm-4 col-md-3">
               <label className="form-label" htmlFor="income-statement-fiscal-year">
                 Fiscal year
@@ -156,7 +156,10 @@ export default function IncomeStatement() {
               </select>
             </div>
             <div className="col-sm-4 col-md-3">
-              <div className="form-check mb-0">
+              <label className="form-label" htmlFor="income-statement-posted-only">
+                Posted only
+              </label>
+              <div className="form-check report-filter-check">
                 <input
                   className="form-check-input"
                   type="checkbox"
@@ -164,18 +167,12 @@ export default function IncomeStatement() {
                   checked={postedOnly}
                   onChange={(e) => setPostedOnly(e.target.checked)}
                 />
-                <label
-                  className="form-check-label"
-                  htmlFor="income-statement-posted-only"
-                >
-                  Posted only
-                </label>
               </div>
             </div>
             <div className="col-sm-4 col-md-6">
-              <div className="text-muted">
-                Period: {formatDate(report.start_date)} –{" "}
-                {formatDate(report.end_date)}
+              <div className="form-label">Period</div>
+              <div className="report-filter-check-field text-muted">
+                {formatDate(report.start_date)} – {formatDate(report.end_date)}
               </div>
             </div>
           </div>

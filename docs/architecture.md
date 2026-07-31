@@ -64,7 +64,7 @@ Routes are declared in `App.jsx`. Navigation structure is duplicated in `src/dat
 |------|----------------|
 | Setup | `/setup/organizations`, `/setup/people`, `/setup/accounts`, `/setup/resources` |
 | Accounting | `/accounting/events`, `/accounting/events/:eventId`, `/accounting/account-history`, `/accounting/suppliers` |
-| Reports | `/accounting/reports/income-statement`, `/accounting/reports/balance-sheet` |
+| Reports | `/accounting/reports/income-statement`, `/accounting/reports/balance-sheet`, `/accounting/reports/inventory` |
 
 ## Organization context
 
@@ -98,10 +98,11 @@ Used for: **Event workspace** (`/accounting/events/:eventId`).
 
 ### Report pages
 
-Used for: Income Statement, Balance Sheet.
+Used for: Income Statement, Balance Sheet, Inventory On-Hand.
 
 - Fiscal year + `posted_only` filters (balance sheet: multi-year via `fiscal_years`)
-- Hierarchical account trees with expand/collapse
+- Inventory On-Hand: optional `as_of_date` + `posted_only`
+- Hierarchical account trees with expand/collapse (financial statements)
 - Drill-through links to Account History with query params
 - Balance sheet comparative columns headed by period `end_date`, newest left
 

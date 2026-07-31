@@ -37,6 +37,14 @@ const sideBarNav = [
             {label: "Cashflow Statement", href: "#"},
         ] 
       },
+      {
+        label: "Inventory",
+        icon: "bi bi-circle",
+        href: "#",
+        children: [
+          { label: "On-Hand", href: "/accounting/reports/inventory" },
+        ],
+      },
       { label: "Utilities", icon: "bi bi-circle", href: "#" },
       { label: "Weather", icon: "bi bi-circle", href: "#" },
     ],

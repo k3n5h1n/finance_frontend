@@ -5,4 +5,5 @@ const API_BASE =
 export const REPORTS_API = {
   INCOME_STATEMENT: `${API_BASE}/accounting/reports/income_statement/`,
   BALANCE_SHEET: `${API_BASE}/accounting/reports/balance_sheet/`,
+  INVENTORY_ON_HAND: `${API_BASE}/accounting/reports/inventory/`,
 };

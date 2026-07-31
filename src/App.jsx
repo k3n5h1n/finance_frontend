@@ -18,6 +18,7 @@ import EventWorkspace from './pages/events/EventWorkspace';
 import AccountHistory from './pages/accounts/AccountHistory';
 import IncomeStatement from './pages/reports/IncomeStatement';
 import BalanceSheet from './pages/reports/BalanceSheet';
+import InventoryOnHand from './pages/reports/InventoryOnHand';
 
 // import project styles
 import './styles/variables.css';
@@ -59,6 +60,7 @@ function AppLayout() {
               <Route path="/accounting/account-history" element={<AccountHistory />} />
               <Route path="/accounting/reports/income-statement" element={<IncomeStatement />} />
               <Route path="/accounting/reports/balance-sheet" element={<BalanceSheet />} />
+              <Route path="/accounting/reports/inventory" element={<InventoryOnHand />} />
               <Route
                 path="*"
                 element={<div className="p-4">Welcome to the dashboard</div>}

@@ -102,6 +102,15 @@ Rows include running balance, event link, posted flag.
 - Year picker: multi-select checkboxes (non-sequential years allowed); default current + prior when available
 - Account history drill-through uses the leftmost (most recent) period `end_date`
 
+### Inventory on-hand
+
+`GET /accounting/reports/inventory/?as_of_date=&posted_only=`
+
+- Nav: Finances → Inventory → On-Hand (`/accounting/reports/inventory`)
+- Response: `items[]` with `resource_id`, `resource_name`, `default_units`, `quantity` (may be negative)
+- Optional filters: `as_of_date` (`YYYY-MM-DD`), `posted_only` (default false); blank as-of date omits the param (current on-hand)
+- UI sorts by resource name; negative quantities shown in danger color
+
 ### Shared report UI
 
 - Income statement: single fiscal year dropdown (legacy API until multi-year lands)
@@ -142,7 +151,7 @@ Ledger columns show em dash for zero debit/credit in history tables.
 | List pagination | `components/ListPagination.jsx`, `utils/paginatedList.js` |
 | Accounts | `accountsApi.js`, `accountTree.js`, `AccountHistory.jsx` |
 | Resources | `pages/resources/resourcesApi.js`, `ResourcesList.jsx`, `ResourceModal.jsx` |
-| Reports | `reportsApi.js`, `IncomeStatement.jsx`, `BalanceSheet.jsx`, `reportComponents.jsx` |
+| Reports | `reportsApi.js`, `IncomeStatement.jsx`, `BalanceSheet.jsx`, `InventoryOnHand.jsx`, `reportComponents.jsx` |
 | Validation | `src/utils/validation/*Schema.js` |
 
 ## Resources (setup catalog)

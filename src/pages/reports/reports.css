@@ -38,3 +38,25 @@
   min-width: 7.5rem;
   white-space: nowrap;
 }
+
+/* Align standalone filter checkboxes with adjacent form controls */
+.report-filter-check {
+  display: flex;
+  align-items: center;
+  min-height: 38px;
+  padding-left: 0;
+  margin-bottom: 0;
+}
+
+.report-filter-check .form-check-input {
+  float: none;
+  margin-top: 0;
+  margin-left: 0;
+}
+
+.report-filter-check-field {
+  display: flex;
+  align-items: center;
+  min-height: 38px;
+}
+

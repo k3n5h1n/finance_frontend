@@ -154,6 +154,7 @@ Nested under an entry line; distinct from the setup **catalog** at `/resources/`
 | ---------------- | ------------------------------------------- |
 | Income statement | `GET /accounting/reports/income_statement/` |
 | Balance sheet    | `GET /accounting/reports/balance_sheet/`    |
+| Inventory on-hand | `GET /accounting/reports/inventory/`       |
 
 ### Resources (setup catalog)
 
@@ -173,8 +174,11 @@ Query parameters (GET only — no JSON body):
 
 - Income statement: `fiscal_year` (integer), `posted_only` (`true` / `false` string)
 - Balance sheet: repeated `fiscal_years` (integers), `posted_only`
+- Inventory on-hand: optional `as_of_date` (`YYYY-MM-DD`), `posted_only`
 
 Balance sheet response shape: `{ periods: [...], rows: [{ account, balances: [...] }] }` with optional top-level `posted_only`. UI reorders periods newest-first for display.
+
+Inventory on-hand response shape: `{ items: [{ resource_id, resource_name, default_units, quantity }] }` for catalog resources of type ITEM.
 
 ## Posting (entries, groups, events)
 

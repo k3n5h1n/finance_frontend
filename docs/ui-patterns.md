@@ -178,7 +178,7 @@ Not every page has mobile cards yet; add both when the list is a primary workflo
 
 ## Navigation
 
-`sidebarNav.js` supports nested children (e.g. Financial Reports). Routes must be registered separately in `App.jsx`.
+`sidebarNav.js` supports nested children (e.g. Financial Reports, Inventory). Routes must be registered separately in `App.jsx`.
 
 Active link highlighting compares `location.pathname` to `item.href` (exact match).
 

@@ -47,6 +47,9 @@ function buildReportQueryParams(options = {}) {
   if (typeof options.posted_only === "boolean") {
     params.set("posted_only", String(options.posted_only));
   }
+  if (options.as_of_date) {
+    params.set("as_of_date", String(options.as_of_date));
+  }
   return params;
 }
 
@@ -82,5 +85,14 @@ export async function getBalanceSheet(organizationId, options = {}) {
     organizationId,
     options,
     "Failed to load balance sheet"
+  );
+}
+
+export async function getInventoryOnHand(organizationId, options = {}) {
+  return fetchReport(
+    REPORTS_API.INVENTORY_ON_HAND,
+    organizationId,
+    options,
+    "Failed to load inventory on-hand report"
   );
 }
