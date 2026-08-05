@@ -965,6 +965,11 @@ export default function EventWorkspace() {
       />
 
       <LineResourceModal
+        key={
+          lineResourceModal.open
+            ? `${lineResourceModal.mode}-${lineResourceModal.resource?.id ?? lineResourceModal.entryLineId}-${lineResourceModal.displayOrder}`
+            : "line-resource-closed"
+        }
         isOpen={lineResourceModal.open}
         mode={lineResourceModal.mode}
         resource={lineResourceModal.resource}

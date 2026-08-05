@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  LINKABLE_RESOURCE_TYPES,
   lineResourceSchema,
   lineResourceToFormValues,
   formValuesToLineResourcePayload,
 } from "../../utils/validation/lineResourceSchema";
+import { formatResourceType } from "../../utils/validation/resourceSchema";
 import {
   createLineResource,
   updateLineResource,
@@ -31,7 +33,6 @@ export default function LineResourceModal({
   const [catalogResources, setCatalogResources] = useState([]);
   const [catalogLoading, setCatalogLoading] = useState(false);
   const [catalogError, setCatalogError] = useState(null);
-  const lastPopulatedResourceIdRef = useRef(null);
 
   const {
     register,
@@ -44,7 +45,7 @@ export default function LineResourceModal({
     resolver: zodResolver(lineResourceSchema),
     mode: "onChange",
     reValidateMode: "onChange",
-    defaultValues: lineResourceToFormValues(null, defaults),
+    defaultValues: lineResourceToFormValues(resource, defaults),
   });
 
   useEscapeToClose(isOpen, () => onClose());
@@ -52,7 +53,6 @@ export default function LineResourceModal({
   useEffect(() => {
     if (!isOpen) return;
     reset(lineResourceToFormValues(resource, defaults));
-    lastPopulatedResourceIdRef.current = resource?.resource_id ?? null;
   }, [isOpen, resource, defaults, reset]);
 
   useEffect(() => {
@@ -84,49 +84,87 @@ export default function LineResourceModal({
   }, [isOpen, selectedOrganizationId]);
 
   const linkToResource = watch("link_to_resource");
+  const resourceType = watch("resource_type");
   const selectedResourceId = watch("resource_id");
   const quantity = watch("quantity");
   const unitAmount = watch("unit_amount");
 
-  const itemOptions = useMemo(() => {
-    const activeItems = catalogResources.filter(
-      (item) => item.type === "ITEM" && item.is_active
-    );
-    const selectedId = selectedResourceId != null ? Number(selectedResourceId) : null;
-    if (selectedId == null) return activeItems;
-
-    const selected = catalogResources.find((item) => item.id === selectedId);
-    if (!selected) return activeItems;
-    if (activeItems.some((item) => item.id === selectedId)) return activeItems;
-    return [selected, ...activeItems];
-  }, [catalogResources, selectedResourceId]);
-
+  // When editing a linked line, sync type from the catalog record.
   useEffect(() => {
     if (!isOpen || !linkToResource) return;
     if (selectedResourceId == null || selectedResourceId === "") return;
 
-    const id = Number(selectedResourceId);
-    if (lastPopulatedResourceIdRef.current === id) return;
+    const selected = catalogResources.find(
+      (item) => item.id === Number(selectedResourceId)
+    );
+    if (
+      selected &&
+      LINKABLE_RESOURCE_TYPES.includes(selected.type) &&
+      selected.type !== resourceType
+    ) {
+      setValue("resource_type", selected.type, { shouldDirty: false });
+    }
+  }, [
+    isOpen,
+    linkToResource,
+    selectedResourceId,
+    catalogResources,
+    resourceType,
+    setValue,
+  ]);
 
-    const selected = catalogResources.find((item) => item.id === id);
+  const catalogOptions = useMemo(() => {
+    const matching = catalogResources.filter(
+      (item) => item.type === resourceType && item.is_active
+    );
+    const selectedId =
+      selectedResourceId != null && selectedResourceId !== ""
+        ? Number(selectedResourceId)
+        : null;
+    let options = matching;
+
+    if (selectedId != null) {
+      const selected = catalogResources.find((item) => item.id === selectedId);
+      if (selected && !matching.some((item) => item.id === selectedId)) {
+        options = [selected, ...matching];
+      }
+    }
+
+    return [...options].sort((a, b) =>
+      String(a.name ?? "").localeCompare(String(b.name ?? ""))
+    );
+  }, [catalogResources, selectedResourceId, resourceType]);
+
+  const populateFromCatalog = (catalogId) => {
+    if (catalogId == null || catalogId === "") return;
+    const selected = catalogResources.find(
+      (item) => item.id === Number(catalogId)
+    );
     if (!selected) return;
 
     setValue("description", selected.name ?? "", {
       shouldDirty: true,
       shouldValidate: true,
     });
-    setValue("unit_measure", selected.item?.default_units ?? "", {
+    // Items may supply default units; services have no item details.
+    setValue(
+      "unit_measure",
+      selected.type === "ITEM" ? (selected.item?.default_units ?? "") : "",
+      { shouldDirty: true, shouldValidate: true }
+    );
+  };
+
+  const handleResourceTypeChange = (e) => {
+    const nextType = e.target.value;
+    setValue("resource_type", nextType, {
       shouldDirty: true,
       shouldValidate: true,
     });
-    lastPopulatedResourceIdRef.current = id;
-  }, [
-    isOpen,
-    linkToResource,
-    selectedResourceId,
-    catalogResources,
-    setValue,
-  ]);
+    setValue("resource_id", "", {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
 
   const extendedPreview = useMemo(() => {
     const qty = Number(quantity);
@@ -134,7 +172,7 @@ export default function LineResourceModal({
     if (!Number.isFinite(qty) || !Number.isFinite(unit) || qty === 0 || unit === 0) {
       return null;
     }
-    return Math.round(Math.abs(qty * unit) * 100) / 100;
+    return Math.round(Math.abs(qty) * unit * 100) / 100;
   }, [quantity, unitAmount]);
 
   const onSubmit = async (data) => {
@@ -211,35 +249,48 @@ export default function LineResourceModal({
                         <select
                           id="line-resource-type"
                           className="form-select"
-                          disabled
-                          {...register("resource_type")}
+                          value={resourceType}
+                          onChange={handleResourceTypeChange}
                         >
-                          <option value="ITEM">Item</option>
+                          {LINKABLE_RESOURCE_TYPES.map((type) => (
+                            <option key={type} value={type}>
+                              {formatResourceType(type)}
+                            </option>
+                          ))}
                         </select>
-                        <div className="form-text">
-                          Only Item is supported for now.
-                        </div>
                       </div>
                       <div className="col-sm-8">
                         <label
                           className="form-label"
                           htmlFor="line-resource-catalog"
                         >
-                          Item
+                          {formatResourceType(resourceType) || "Resource"}
                         </label>
                         <select
                           id="line-resource-catalog"
                           className={`form-select ${errors.resource_id ? "is-invalid" : ""}`}
                           disabled={catalogLoading}
-                          {...register("resource_id")}
+                          value={
+                            selectedResourceId == null || selectedResourceId === ""
+                              ? ""
+                              : String(selectedResourceId)
+                          }
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            setValue("resource_id", raw, {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            });
+                            populateFromCatalog(raw);
+                          }}
                         >
                           <option value="">
                             {catalogLoading
                               ? "Loading…"
-                              : "Select an item…"}
+                              : `Select a ${formatResourceType(resourceType).toLowerCase() || "resource"}…`}
                           </option>
-                          {itemOptions.map((item) => (
-                            <option key={item.id} value={item.id}>
+                          {catalogOptions.map((item) => (
+                            <option key={item.id} value={String(item.id)}>
                               {item.name}
                               {item.is_active === false ? " (inactive)" : ""}
                             </option>
@@ -314,7 +365,7 @@ export default function LineResourceModal({
                       <input
                         id="line-resource-unit-cost"
                         type="number"
-                        step="0.001"
+                        step="0.0001"
                         className={`form-control ${errors.unit_amount ? "is-invalid" : ""}`}
                         {...register("unit_amount")}
                       />

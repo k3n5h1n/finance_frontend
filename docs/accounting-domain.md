@@ -20,7 +20,7 @@ Event
 | Entry group | `description`, `type`, `display_order` | Types: primary, adjustment, accrual, reversal |
 | Entry | `date`, `description`, `is_posted`, `display_order` | Posted entries are immutable in UI |
 | Entry line | `account`, `supplier`, `debit`, `credit`, `display_order` | Exactly one of debit/credit non-zero |
-| Line resource | `description`, `quantity`, `unit_measure`, `unit_amount`, `extended_amount`, optional `resource_id` | Optional breakdown of line amount; may link to setup catalog `/resources/`. Quantity may be negative; `extended_amount = abs(quantity × unit_amount)` |
+| Line resource | `description`, `quantity`, `unit_measure`, `unit_amount`, `extended_amount`, optional `resource_id` | Optional breakdown of line amount; may link to setup catalog `/resources/`. Quantity may be negative; `extended_amount = abs(quantity) × unit_amount` (sign follows unit cost only) |
 
 ### Reading data
 
@@ -127,7 +127,7 @@ Report tree building: `buildReportSectionTree` (single balance) / `buildMultiPer
 | Helper | Use |
 |--------|-----|
 | `formatAmount` | Currency, 2 decimal places |
-| `formatUnitCost` | Line resource unit cost, up to 3 decimals |
+| `formatUnitCost` | Line resource unit cost, always 4 decimals |
 | `formatDate` | ISO date → locale short date |
 | `formatDateTime` | Timestamps on event header |
 
@@ -165,7 +165,7 @@ Org-scoped catalog at `/resources/` (distinct from accounting **line resources**
 
 List endpoint has no filters/pagination yet; UI sorts client-side by name.
 
-Accounting line resources may optionally set `resource_id` to a catalog resource. Selecting an Item populates line `description` and `unit_measure` from the catalog defaults; those values are stored on the line resource and remain editable without updating the catalog. Unlinking clears `resource_id` but keeps the copied fields. Only Item is supported in the link UI for now.
+Accounting line resources may optionally set `resource_id` to a catalog resource (Item or Service). Selecting a catalog row populates line `description` from `name`; Items also copy `item.default_units` into `unit_measure` when present. Those values are stored on the line resource and remain editable without updating the catalog. Unlinking sets `resource_id: null` and keeps the copied fields.
 
 ## Future backend features (UI hooks ready or planned)
 

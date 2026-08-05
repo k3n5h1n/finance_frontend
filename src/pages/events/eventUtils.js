@@ -330,8 +330,8 @@ export function formatAmount(amount) {
 
 export function formatUnitCost(amount) {
   return new Intl.NumberFormat("en-CA", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 3,
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 4,
   }).format(Number(amount) ?? 0);
 }
 

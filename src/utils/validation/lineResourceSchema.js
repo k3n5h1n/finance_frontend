@@ -1,9 +1,12 @@
 import { z } from "zod";
 
+/** Catalog types that can be linked from an accounting line resource. */
+export const LINKABLE_RESOURCE_TYPES = ["ITEM", "SERVICE"];
+
 export const lineResourceSchema = z
   .object({
     link_to_resource: z.boolean(),
-    resource_type: z.literal("ITEM"),
+    resource_type: z.enum(LINKABLE_RESOURCE_TYPES),
     resource_id: z
       .union([z.coerce.number().int().positive(), z.literal(""), z.null()])
       .optional()
@@ -38,7 +41,7 @@ export function lineResourceToFormValues(resource, defaults) {
     return {
       link_to_resource: false,
       resource_type: "ITEM",
-      resource_id: null,
+      resource_id: "",
       description: defaults?.description ?? "",
       quantity: defaults?.quantity ?? 1,
       unit_measure: defaults?.unit_measure ?? "",
@@ -48,8 +51,10 @@ export function lineResourceToFormValues(resource, defaults) {
 
   return {
     link_to_resource: linkedId != null,
+    // Overridden from catalog once loaded when linked.
     resource_type: "ITEM",
-    resource_id: linkedId,
+    // String so <select> option values match after catalog options load.
+    resource_id: linkedId != null ? String(linkedId) : "",
     description: resource.description ?? "",
     quantity: resource.quantity ?? 1,
     unit_measure: resource.unit_measure ?? "",
@@ -61,7 +66,7 @@ export function formValuesToLineResourcePayload(data, { displayOrder } = {}) {
   const quantity = data.quantity;
   const unit_amount = data.unit_amount;
   const extended_amount =
-    Math.round(Math.abs(quantity * unit_amount) * 100) / 100;
+    Math.round(Math.abs(quantity) * unit_amount * 100) / 100;
 
   const payload = {
     description: data.description,
@@ -69,13 +74,8 @@ export function formValuesToLineResourcePayload(data, { displayOrder } = {}) {
     unit_amount,
     extended_amount,
     resource_id: data.link_to_resource ? data.resource_id : null,
+    unit_measure: data.unit_measure || null,
   };
-
-  if (data.unit_measure) {
-    payload.unit_measure = data.unit_measure;
-  } else {
-    payload.unit_measure = null;
-  }
 
   if (displayOrder != null) {
     payload.display_order = displayOrder;

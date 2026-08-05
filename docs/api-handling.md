@@ -139,12 +139,12 @@ Nested under an entry line; distinct from the setup **catalog** at `/resources/`
 | Field | Notes |
 |-------|--------|
 | `description` | Required in UI; may be defaulted from a linked catalog item’s `name` |
-| `quantity`, `unit_amount`, `extended_amount` | Quantity may be negative (not zero). UI sets `extended_amount = abs(quantity × unit_amount)` |
-| `unit_measure` | Optional; may be defaulted from catalog item `default_units` |
+| `quantity`, `unit_amount`, `extended_amount` | Quantity may be negative (not zero). `unit_amount` supports up to 4 decimals (negative for discounts). UI sets `extended_amount = abs(quantity) × unit_amount` (rounded to cents; sign follows unit cost only) |
+| `unit_measure` | Optional; send `null` when empty |
 | `display_order` | Required on create/update |
 | `resource_id` | Optional FK to setup `/resources/{id}`; send `null` to unlink |
 
-**Linking behavior (UI):** toggle “Link to catalog resource” → type (Item only for now) → active Item dropdown. Selecting an item populates `description` and `unit_measure` as editable defaults on the **line resource** only — the catalog record is never updated. Unlinking sets `resource_id: null` and leaves the text fields unchanged.
+**Linking behavior (UI):** toggle “Link to catalog resource” → type (Item or Service) → active catalog dropdown for that type. Selecting a catalog row populates `description` from `name`. Items also populate `unit_measure` from `item.default_units` when present; services have no default units. Values are editable on the **line resource** only — the catalog record is never updated. Unlinking sets `resource_id: null` and leaves the text fields unchanged.
 
 **Replicate:** `POST /accounting/events/{id}/replicate` with `include_line_resources` (boolean). Do not use `include_resources` — it is accepted but does not copy line resources.
 

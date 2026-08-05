@@ -130,7 +130,7 @@ Multi-level document UI on one page:
 - Header card: event metadata (status, type, internal/external) + actions (edit, replicate, **post event**, delete, add group)
 - Sections per entry group with entries as cards; group header has **post group**
 - Entry lines in table; line resources in expandable sub-row
-- Line resource modal can optionally link to a setup catalog resource (`resource_id`); Item only for now
+- Line resource modal can optionally link to a setup catalog resource (`resource_id`); Item and Service
 - Each level has its own modal component
 
 After any mutation, **reload full event** via `getEvent` — do not patch local tree incrementally unless you add optimistic update logic deliberately.

@@ -3,6 +3,8 @@ import { useOrganization } from "../../context/OrganizationContext";
 import { getInventoryOnHand } from "./reportsApi";
 import "./reports.css";
 
+const AS_OF_DATE_DEBOUNCE_MS = 400;
+
 function formatQuantity(value) {
   const amount = Number(value);
   if (!Number.isFinite(amount)) return "—";
@@ -11,13 +13,28 @@ function formatQuantity(value) {
   }).format(amount);
 }
 
+function isCompleteDate(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
 export default function InventoryOnHand() {
   const { selectedOrganizationId } = useOrganization();
   const [items, setItems] = useState([]);
   const [postedOnly, setPostedOnly] = useState(false);
   const [asOfDate, setAsOfDate] = useState("");
+  const [debouncedAsOfDate, setDebouncedAsOfDate] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const handle = window.setTimeout(() => {
+      // Only query once the field is blank or a full YYYY-MM-DD value.
+      if (asOfDate === "" || isCompleteDate(asOfDate)) {
+        setDebouncedAsOfDate(asOfDate);
+      }
+    }, AS_OF_DATE_DEBOUNCE_MS);
+    return () => window.clearTimeout(handle);
+  }, [asOfDate]);
 
   const loadReport = useCallback(async () => {
     if (selectedOrganizationId == null) return;
@@ -28,7 +45,7 @@ export default function InventoryOnHand() {
     try {
       const data = await getInventoryOnHand(selectedOrganizationId, {
         posted_only: postedOnly,
-        as_of_date: asOfDate || undefined,
+        as_of_date: debouncedAsOfDate || undefined,
       });
       setItems(Array.isArray(data?.items) ? data.items : []);
     } catch (err) {
@@ -38,7 +55,7 @@ export default function InventoryOnHand() {
     } finally {
       setLoading(false);
     }
-  }, [selectedOrganizationId, postedOnly, asOfDate]);
+  }, [selectedOrganizationId, postedOnly, debouncedAsOfDate]);
 
   useEffect(() => {
     loadReport();
@@ -51,8 +68,6 @@ export default function InventoryOnHand() {
       ),
     [items]
   );
-
-  if (loading) return <p className="p-4">Loading...</p>;
 
   return (
     <>
@@ -98,6 +113,8 @@ export default function InventoryOnHand() {
         <div className="alert alert-danger" role="alert">
           {error}
         </div>
+      ) : loading ? (
+        <p className="text-muted mb-0">Loading...</p>
       ) : (
         <div className="table-responsive">
           <table className="table table-striped report-table">
