@@ -123,6 +123,12 @@ State: `expandedIds` as `Set<number>`.
 
 Shared styles: `accounts.css` tree classes; reports use `reportComponents.jsx`.
 
+### Nested sub-rows (non-tree)
+
+Used in: Event workspace line resources, External Data authorizations.
+
+Parent row has a chevron when nested records exist. Expanding inserts a full-width sub-row (`colSpan`) with a nested table/panel. Toggle on chevron click only.
+
 ## Event workspace
 
 Multi-level document UI on one page:
@@ -130,7 +136,7 @@ Multi-level document UI on one page:
 - Header card: event metadata (status, type, internal/external) + actions (edit, replicate, **post event**, delete, add group)
 - Sections per entry group with entries as cards; group header has **post group**
 - Entry lines in table; line resources in expandable sub-row
-- Line resource modal can optionally link to a setup catalog resource (`resource_id`); Item and Service
+- Line resource modal can optionally link to a setup catalog resource (`resource_id`); Item, Service, and Instrument
 - Each level has its own modal component
 
 After any mutation, **reload full event** via `getEvent` — do not patch local tree incrementally unless you add optimistic update logic deliberately.
@@ -140,7 +146,7 @@ After any mutation, **reload full event** via `getEvent` — do not patch local 
 - Event header edit: allowed even when posted
 - Add/delete entry, lines, items: draft event and draft entry only
 - **Post** actions (green check icon via `PostActionButton`):
-  - **Entry** — draft, has lines, debits = credits (`canPostEntry`)
+  - **Entry** — draft, has lines, debits = credits, date not in the future (`canPostEntry`)
   - **Entry group** — all entries in the group balanced; at least one draft entry postable (`canPostEntryGroup`)
   - **Event** — all entries across all groups balanced; at least one draft entry postable (`canPostEvent`)
 

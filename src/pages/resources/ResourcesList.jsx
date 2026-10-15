@@ -1,9 +1,13 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import ResourceModal from "./ResourceModal";
 import { listResources, deleteResource } from "./resourcesApi";
-import { formatResourceType } from "../../utils/validation/resourceSchema";
+import {
+  formatResourceType,
+  formatResourceDetails,
+} from "../../utils/validation/resourceSchema";
 import { useOrganization } from "../../context/OrganizationContext";
 import { useAppDialog } from "../../hooks/useAppDialog";
+import "./resources.css";
 
 export default function ResourcesList() {
   const { selectedOrganizationId } = useOrganization();
@@ -73,6 +77,18 @@ export default function ResourcesList() {
             default_units: resource.item.default_units,
           }
         : undefined,
+      instrument: resource.instrument
+        ? {
+            symbol: resource.instrument.symbol,
+            type: resource.instrument.type,
+            currency: resource.instrument.currency,
+            market_api_id: resource.instrument.market_api_id,
+            date_listed: resource.instrument.date_listed,
+            date_delisted: resource.instrument.date_delisted,
+            isin: resource.instrument.isin,
+            cusip: resource.instrument.cusip,
+          }
+        : undefined,
     });
     setIsModalOpen(true);
   };
@@ -132,9 +148,9 @@ export default function ResourcesList() {
           <thead>
             <tr>
               <th>Name</th>
-              <th>Type</th>
+              <th className="text-center">Type</th>
               <th>Details</th>
-              <th>Status</th>
+              <th className="text-center">Status</th>
               <th className="text-end" style={{ width: "1%" }}></th>
             </tr>
           </thead>
@@ -148,23 +164,12 @@ export default function ResourcesList() {
             ) : (
               sortedResources.map((resource) => (
                 <tr key={resource.id}>
-                  <td>{resource.name}</td>
-                  <td>{formatResourceType(resource.type)}</td>
-                  <td>
-                    {resource.type === "ITEM" ? (
-                      <>
-                        {resource.item?.tracks_quantity
-                          ? "Tracks quantity"
-                          : "No quantity tracking"}
-                        {resource.item?.default_units
-                          ? ` · ${resource.item.default_units}`
-                          : ""}
-                      </>
-                    ) : (
-                      "—"
-                    )}
+                  <td className="resources-name-cell">{resource.name}</td>
+                  <td className="resources-type-cell">
+                    {formatResourceType(resource.type)}
                   </td>
-                  <td>
+                  <td>{formatResourceDetails(resource)}</td>
+                  <td className="resources-status-cell">
                     {resource.is_active ? (
                       <span className="badge text-bg-success">Active</span>
                     ) : (

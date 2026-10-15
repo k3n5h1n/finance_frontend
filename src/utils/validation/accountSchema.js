@@ -27,6 +27,11 @@ export const accountSchema = z.object({
     .optional()
     .nullable()
     .transform((val) => (val === "" || val == null ? null : Number(val))),
+  owner_id: z
+    .union([z.string(), z.number()])
+    .optional()
+    .nullable()
+    .transform((val) => (val === "" || val == null ? null : Number(val))),
 });
 
 export function accountToFormValues(account, defaultOrganizationId) {
@@ -38,6 +43,7 @@ export function accountToFormValues(account, defaultOrganizationId) {
     type: account?.type ?? "expense",
     organization_id: account?.organization?.id ?? defaultOrganizationId ?? "",
     parent_id: account?.parent?.id ?? "",
+    owner_id: account?.owner?.id != null ? String(account.owner.id) : "",
   };
 }
 
@@ -47,6 +53,7 @@ export function formValuesToPayload(data) {
     currency: data.currency,
     active: data.active,
     type: data.type,
+    owner_id: data.owner_id ?? null,
   };
 
   if (data.description) {

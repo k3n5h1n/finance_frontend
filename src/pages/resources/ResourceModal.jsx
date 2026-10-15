@@ -1,12 +1,15 @@
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   RESOURCE_TYPES,
+  INSTRUMENT_TYPES,
+  INSTRUMENT_CURRENCIES,
   resourceSchema,
   resourceToFormValues,
   formValuesToResourcePayload,
   formatResourceType,
+  formatInstrumentType,
 } from "../../utils/validation/resourceSchema";
 import {
   createResource,
@@ -16,6 +19,7 @@ import {
 import { useOrganization } from "../../context/OrganizationContext";
 import { useAppDialog } from "../../hooks/useAppDialog";
 import { useEscapeToClose } from "../../hooks/useEscapeToClose";
+import "./resources.css";
 
 export default function ResourceModal({ isOpen, onClose, resource, mode }) {
   const { selectedOrganizationId } = useOrganization();
@@ -28,7 +32,8 @@ export default function ResourceModal({ isOpen, onClose, resource, mode }) {
     register,
     handleSubmit,
     reset,
-    watch,
+    control,
+    setValue,
     formState: { errors, isSubmitting, isValid, isDirty },
   } = useForm({
     resolver: zodResolver(resourceSchema),
@@ -45,10 +50,11 @@ export default function ResourceModal({ isOpen, onClose, resource, mode }) {
     }
   }, [isOpen, resource, reset]);
 
-  const selectedType = watch("type");
+  const selectedType = useWatch({ control, name: "type", defaultValue: "ITEM" });
   const isItemType = selectedType === "ITEM";
+  const isInstrumentType = selectedType === "INSTRUMENT";
 
-  if (!isOpen) return null;
+  const typeRegister = register("type");
 
   const onSubmit = async (data) => {
     try {
@@ -90,6 +96,8 @@ export default function ResourceModal({ isOpen, onClose, resource, mode }) {
     }
   };
 
+  if (!isOpen) return null;
+
   return (
     <>
       <div
@@ -98,9 +106,13 @@ export default function ResourceModal({ isOpen, onClose, resource, mode }) {
         aria-modal="true"
         role="dialog"
       >
-        <div className="modal-dialog">
+        <div
+          className={`modal-dialog modal-dialog-scrollable resource-modal-dialog${
+            isInstrumentType ? " modal-lg" : ""
+          }`}
+        >
           <div className="modal-content">
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form className="resource-modal-form" onSubmit={handleSubmit(onSubmit)}>
               <div className="modal-header">
                 <h5 className="modal-title">
                   {isEdit
@@ -140,8 +152,16 @@ export default function ResourceModal({ isOpen, onClose, resource, mode }) {
                   <select
                     id="resource-type"
                     className={`form-select ${errors.type ? "is-invalid" : isDirty ? "is-valid" : ""}`}
-                    disabled={isView}
-                    {...register("type")}
+                    disabled={isView || isEdit}
+                    {...typeRegister}
+                    value={selectedType ?? "ITEM"}
+                    onChange={(e) => {
+                      typeRegister.onChange(e);
+                      setValue("type", e.target.value, {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      });
+                    }}
                   >
                     {RESOURCE_TYPES.map((type) => (
                       <option key={type} value={type}>
@@ -151,6 +171,11 @@ export default function ResourceModal({ isOpen, onClose, resource, mode }) {
                   </select>
                   {errors.type && (
                     <div className="invalid-feedback">{errors.type.message}</div>
+                  )}
+                  {isEdit && (
+                    <div className="form-text">
+                      Resource type cannot be changed after create.
+                    </div>
                   )}
                 </div>
 
@@ -204,6 +229,174 @@ export default function ResourceModal({ isOpen, onClose, resource, mode }) {
                         disabled={isView}
                         {...register("default_units")}
                       />
+                    </div>
+                  </fieldset>
+                )}
+
+                {isInstrumentType && (
+                  <fieldset className="border rounded p-3">
+                    <legend className="float-none w-auto px-2 fs-6 mb-0">
+                      Instrument details
+                    </legend>
+                    <div className="row g-3">
+                      <div className="col-md-4">
+                        <label
+                          className="form-label"
+                          htmlFor="instrument-symbol"
+                        >
+                          Symbol
+                        </label>
+                        <input
+                          id="instrument-symbol"
+                          className={`form-control ${errors.instrument_symbol ? "is-invalid" : ""}`}
+                          placeholder="e.g. XIC.TO"
+                          disabled={isView}
+                          {...register("instrument_symbol")}
+                        />
+                        {errors.instrument_symbol && (
+                          <div className="invalid-feedback">
+                            {errors.instrument_symbol.message}
+                          </div>
+                        )}
+                      </div>
+                      <div className="col-md-4">
+                        <label
+                          className="form-label"
+                          htmlFor="instrument-type"
+                        >
+                          Instrument type
+                        </label>
+                        <select
+                          id="instrument-type"
+                          className={`form-select ${errors.instrument_type ? "is-invalid" : ""}`}
+                          disabled={isView}
+                          {...register("instrument_type")}
+                        >
+                          <option value="">Select…</option>
+                          {INSTRUMENT_TYPES.map((type) => (
+                            <option key={type} value={type}>
+                              {formatInstrumentType(type)}
+                            </option>
+                          ))}
+                        </select>
+                        {errors.instrument_type && (
+                          <div className="invalid-feedback">
+                            {errors.instrument_type.message}
+                          </div>
+                        )}
+                      </div>
+                      <div className="col-md-4">
+                        <label
+                          className="form-label"
+                          htmlFor="instrument-currency"
+                        >
+                          Currency
+                        </label>
+                        <select
+                          id="instrument-currency"
+                          className={`form-select ${errors.instrument_currency ? "is-invalid" : ""}`}
+                          disabled={isView}
+                          {...register("instrument_currency")}
+                        >
+                          {INSTRUMENT_CURRENCIES.map((currency) => (
+                            <option key={currency} value={currency}>
+                              {currency}
+                            </option>
+                          ))}
+                        </select>
+                        {errors.instrument_currency && (
+                          <div className="invalid-feedback">
+                            {errors.instrument_currency.message}
+                          </div>
+                        )}
+                      </div>
+                      <div className="col-md-4">
+                        <label
+                          className="form-label"
+                          htmlFor="instrument-market-api-id"
+                        >
+                          Market API ID
+                        </label>
+                        <input
+                          id="instrument-market-api-id"
+                          type="number"
+                          step="1"
+                          min="1"
+                          className={`form-control ${errors.instrument_market_api_id ? "is-invalid" : ""}`}
+                          disabled={isView}
+                          {...register("instrument_market_api_id")}
+                        />
+                        {errors.instrument_market_api_id && (
+                          <div className="invalid-feedback">
+                            {errors.instrument_market_api_id.message}
+                          </div>
+                        )}
+                      </div>
+                      <div className="col-md-4">
+                        <label
+                          className="form-label"
+                          htmlFor="instrument-date-listed"
+                        >
+                          Date listed
+                        </label>
+                        <input
+                          id="instrument-date-listed"
+                          type="date"
+                          className="form-control"
+                          disabled={isView}
+                          {...register("instrument_date_listed")}
+                        />
+                      </div>
+                      <div className="col-md-4">
+                        <label
+                          className="form-label"
+                          htmlFor="instrument-date-delisted"
+                        >
+                          Date delisted
+                        </label>
+                        <input
+                          id="instrument-date-delisted"
+                          type="date"
+                          className={`form-control ${errors.instrument_date_delisted ? "is-invalid" : ""}`}
+                          disabled={isView}
+                          {...register("instrument_date_delisted")}
+                        />
+                        {errors.instrument_date_delisted && (
+                          <div className="invalid-feedback">
+                            {errors.instrument_date_delisted.message}
+                          </div>
+                        )}
+                      </div>
+                      <div className="col-md-6">
+                        <label
+                          className="form-label"
+                          htmlFor="instrument-isin"
+                        >
+                          ISIN
+                        </label>
+                        <input
+                          id="instrument-isin"
+                          className="form-control"
+                          placeholder="e.g. CA46430J1012"
+                          disabled={isView}
+                          {...register("instrument_isin")}
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label
+                          className="form-label"
+                          htmlFor="instrument-cusip"
+                        >
+                          CUSIP
+                        </label>
+                        <input
+                          id="instrument-cusip"
+                          className="form-control"
+                          placeholder="e.g. 46430J101"
+                          disabled={isView}
+                          {...register("instrument_cusip")}
+                        />
+                      </div>
                     </div>
                   </fieldset>
                 )}

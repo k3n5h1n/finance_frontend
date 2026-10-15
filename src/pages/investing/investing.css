@@ -1,0 +1,37 @@
+.investment-back-link {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.investment-back-link:hover {
+  color: var(--color-primary-dark, var(--color-primary));
+}
+
+.investment-workspace-header {
+  border-color: var(--color-border);
+  background-color: var(--color-bg);
+}
+
+.investment-workspace-tabs .nav-link {
+  color: var(--color-text-muted, inherit);
+}
+
+.investment-workspace-tabs .nav-link.active {
+  color: var(--color-text, inherit);
+  font-weight: 600;
+}
+
+.investment-section-card {
+  border-color: var(--color-border);
+  background-color: var(--color-bg);
+}
+
+.investment-section-card .card-header {
+  background-color: var(--color-bg-muted);
+  border-bottom-color: var(--color-border);
+}
+
+.investment-section-table td,
+.investment-section-table th {
+  vertical-align: middle;
+}

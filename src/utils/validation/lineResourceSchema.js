@@ -1,7 +1,18 @@
 import { z } from "zod";
 
 /** Catalog types that can be linked from an accounting line resource. */
-export const LINKABLE_RESOURCE_TYPES = ["ITEM", "SERVICE"];
+export const LINKABLE_RESOURCE_TYPES = ["ITEM", "SERVICE", "INSTRUMENT"];
+
+/**
+ * Extended amount: abs(quantity) × unit_amount, rounded to cents.
+ * Sign follows unit cost only (negative unit cost → discount); quantity sign ignored.
+ */
+export function computeLineResourceExtendedAmount(quantity, unitAmount) {
+  const qty = Number(quantity);
+  const unit = Number(unitAmount);
+  if (!Number.isFinite(qty) || !Number.isFinite(unit)) return null;
+  return Math.round(Math.abs(qty) * unit * 100) / 100;
+}
 
 export const lineResourceSchema = z
   .object({
@@ -65,8 +76,10 @@ export function lineResourceToFormValues(resource, defaults) {
 export function formValuesToLineResourcePayload(data, { displayOrder } = {}) {
   const quantity = data.quantity;
   const unit_amount = data.unit_amount;
-  const extended_amount =
-    Math.round(Math.abs(quantity) * unit_amount * 100) / 100;
+  const extended_amount = computeLineResourceExtendedAmount(
+    quantity,
+    unit_amount
+  );
 
   const payload = {
     description: data.description,

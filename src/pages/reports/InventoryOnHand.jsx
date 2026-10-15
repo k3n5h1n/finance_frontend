@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useOrganization } from "../../context/OrganizationContext";
 import { getInventoryOnHand } from "./reportsApi";
+import { formatAmount } from "../events/eventUtils";
 import "./reports.css";
 
 const AS_OF_DATE_DEBOUNCE_MS = 400;
@@ -11,6 +12,23 @@ function formatQuantity(value) {
   return new Intl.NumberFormat("en-CA", {
     maximumFractionDigits: 4,
   }).format(amount);
+}
+
+function formatAverageCost(value) {
+  if (value == null || value === "") return "—";
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return "—";
+  return new Intl.NumberFormat("en-CA", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 4,
+  }).format(amount);
+}
+
+function formatTotalCost(value) {
+  if (value == null || value === "") return "—";
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return "—";
+  return formatAmount(amount);
 }
 
 function isCompleteDate(value) {
@@ -122,13 +140,15 @@ export default function InventoryOnHand() {
               <tr>
                 <th>Resource</th>
                 <th className="text-end">Quantity</th>
-                <th>Units</th>
+                <th className="text-center">Units</th>
+                <th className="text-end">Avg cost</th>
+                <th className="text-end">Total cost</th>
               </tr>
             </thead>
             <tbody>
               {sortedItems.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="text-center text-muted py-4">
+                  <td colSpan={5} className="text-center text-muted py-4">
                     No inventory on hand.
                   </td>
                 </tr>
@@ -143,7 +163,17 @@ export default function InventoryOnHand() {
                     >
                       {formatQuantity(item.quantity)}
                     </td>
-                    <td>{item.default_units || "—"}</td>
+                    <td className="text-center">{item.default_units || "—"}</td>
+                    <td className="text-end font-monospace">
+                      {formatAverageCost(item.average_cost)}
+                    </td>
+                    <td
+                      className={`text-end font-monospace${
+                        Number(item.total_cost) < 0 ? " text-danger" : ""
+                      }`}
+                    >
+                      {formatTotalCost(item.total_cost)}
+                    </td>
                   </tr>
                 ))
               )}

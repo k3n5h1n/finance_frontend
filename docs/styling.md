@@ -65,6 +65,8 @@ Use Bootstrap grid (`row`, `col-*`) and flex utilities (`d-flex`, `gap-*`) for p
 
 Right-align numeric columns with `text-end` and `font-monospace` for amounts.
 
+Centre short non-numeric columns with `text-center`: enums, status/type labels, units of measure, and other short label-like text (not free-form descriptions or names).
+
 ## Icons
 
 Action buttons use Bootstrap Icons as modifier classes on buttons:

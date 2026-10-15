@@ -5,7 +5,7 @@ import { listEvents, deleteEvent } from "./eventsApi";
 import { listSuppliers } from "../suppliers/suppliersApi";
 import EventModal from "./EventModal";
 import ReplicateEventModal from "./ReplicateEventModal";
-import { formatDate } from "./eventUtils";
+import { formatDate, sortEventsDefault } from "./eventUtils";
 import { useAppDialog } from "../../hooks/useAppDialog";
 import ListPagination from "../../components/ListPagination";
 import {
@@ -135,6 +135,8 @@ export default function EventsList() {
       supplierId ||
       statusFilter
   );
+
+  const sortedEvents = useMemo(() => sortEventsDefault(events), [events]);
 
   const listFilters = useMemo(
     () => ({
@@ -445,14 +447,14 @@ export default function EventsList() {
                 </tr>
               </thead>
               <tbody>
-                {events.length === 0 ? (
+                {sortedEvents.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="text-center text-muted py-4">
                       {emptyMessage}
                     </td>
                   </tr>
                 ) : (
-                  events.map((event) => (
+                  sortedEvents.map((event) => (
                     <tr key={event.id}>
                       <td>{event.description}</td>
                       <td>
@@ -498,10 +500,10 @@ export default function EventsList() {
           </div>
 
           <div className="d-md-none events-card-list">
-            {events.length === 0 ? (
+            {sortedEvents.length === 0 ? (
               <p className="text-center text-muted py-4">{emptyMessage}</p>
             ) : (
-              events.map((event) => (
+              sortedEvents.map((event) => (
                 <div key={event.id} className="card mb-3 events-card">
                   <div className="card-body">
                     <Link

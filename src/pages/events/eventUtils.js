@@ -9,6 +9,23 @@ export function sortByDisplayOrder(items) {
   return [...(items ?? [])].sort(compareDisplayOrder);
 }
 
+/**
+ * Default Transactions list order: Starts desc, then description asc.
+ * Client-side on the current page until the list API supports sort params.
+ */
+export function compareEventsDefault(a, b) {
+  const startA = a.entries_start ?? "";
+  const startB = b.entries_start ?? "";
+  if (startA !== startB) {
+    return startB.localeCompare(startA);
+  }
+  return String(a.description ?? "").localeCompare(String(b.description ?? ""));
+}
+
+export function sortEventsDefault(events) {
+  return [...(events ?? [])].sort(compareEventsDefault);
+}
+
 /** Swap display_order between an item and its neighbor; returns updated pair or null. */
 export function swapAdjacentDisplayOrder(items, id, direction) {
   const sorted = sortByDisplayOrder(items);
@@ -148,6 +165,21 @@ export function canPostEntry(entry) {
   return getPostEntryBlockReason(entry) == null;
 }
 
+/** True when entry.date (YYYY-MM-DD or datetime) is after today in local time. */
+export function isEntryDateInFuture(entry) {
+  const raw = entry?.date;
+  if (!raw) return false;
+
+  const datePart = String(raw).slice(0, 10);
+  const [year, month, day] = datePart.split("-").map(Number);
+  if (!year || !month || !day) return false;
+
+  const entryDate = new Date(year, month - 1, day);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return entryDate > today;
+}
+
 export function getPostEntryBlockReason(entry) {
   if (entry?.is_posted) return "Entry is already posted.";
   if ((entry.entry_lines ?? []).length === 0) {
@@ -155,6 +187,9 @@ export function getPostEntryBlockReason(entry) {
   }
   if (!getEntryTotals(entry).balanced) {
     return "Debits and credits must balance before posting.";
+  }
+  if (isEntryDateInFuture(entry)) {
+    return "Cannot post an entry with a future date.";
   }
   return null;
 }

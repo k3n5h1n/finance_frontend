@@ -1,0 +1,38 @@
+.resources-name-cell {
+  max-width: 18rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+@media (min-width: 768px) {
+  .resources-name-cell {
+    max-width: 24rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .resources-name-cell {
+    max-width: 32rem;
+  }
+}
+
+.resources-type-cell,
+.resources-status-cell {
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Form wraps header/body/footer, so recreate Bootstrap scrollable flex layout. */
+.resource-modal-dialog.modal-dialog-scrollable .modal-content > form {
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.resource-modal-dialog.modal-dialog-scrollable .modal-content > form > .modal-body {
+  overflow-y: auto;
+  min-height: 0;
+}

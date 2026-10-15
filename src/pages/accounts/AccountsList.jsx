@@ -46,6 +46,7 @@ function AccountTreeRows({
         </td>
         <td className="text-capitalize">{account.type}</td>
         <td>{account.currency}</td>
+        <td>{account.owner?.name ?? "—"}</td>
         <td>{account.organization?.name ?? "—"}</td>
         <td>
           {account.active ? (
@@ -247,6 +248,7 @@ export default function AccountsList() {
             <th>Name</th>
             <th>Type</th>
             <th>Currency</th>
+            <th>Owner</th>
             <th>Organization</th>
             <th>Status</th>
             <th className="text-end" style={{ width: "1%" }}></th>
@@ -255,7 +257,7 @@ export default function AccountsList() {
         <tbody>
           {accountTree.length === 0 ? (
             <tr>
-              <td colSpan={6} className="text-center text-muted py-4">
+              <td colSpan={7} className="text-center text-muted py-4">
                 No accounts found
               </td>
             </tr>

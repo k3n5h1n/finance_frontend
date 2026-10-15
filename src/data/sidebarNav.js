@@ -50,9 +50,10 @@ const sideBarNav = [
     ],
   },
   {
-    label: "Investments",
+    label: "Investing",
     icon: "bi bi-menu-button-wide",
     children: [
+      { label: "Investments", icon: "bi bi-circle", href: "/investing/investments" },
       { label: "Accounts", icon: "bi bi-circle", href: "#" },
       { label: "Shares", icon: "bi bi-circle", href: "#" },
       { label: "Allocation", icon: "bi bi-circle", href: "#" },
@@ -79,7 +80,7 @@ const sideBarNav = [
       { label: "Accounts", icon: "bi bi-circle", href: "/setup/accounts" },
       { label: "Resources", icon: "bi bi-circle", href: "/setup/resources" },
       { label: "Taxes & Regulatory", icon: "bi bi-circle", href: "#" },
-      { label: "Data Feeds", icon: "bi bi-circle", href: "#" },
+      { label: "External Data", icon: "bi bi-circle", href: "/setup/external-data" },
     ],
   },
 ];

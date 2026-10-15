@@ -12,6 +12,7 @@ import OrganizationsList from './pages/organizations/OrganizationsList';
 import PeopleList from './pages/people/PeopleList';
 import AccountsList from './pages/accounts/AccountsList';
 import ResourcesList from './pages/resources/ResourcesList';
+import ExternalDataList from './pages/externalData/ExternalDataList';
 import SuppliersList from './pages/suppliers/SuppliersList';
 import EventsList from './pages/events/EventsList';
 import EventWorkspace from './pages/events/EventWorkspace';
@@ -19,6 +20,11 @@ import AccountHistory from './pages/accounts/AccountHistory';
 import IncomeStatement from './pages/reports/IncomeStatement';
 import BalanceSheet from './pages/reports/BalanceSheet';
 import InventoryOnHand from './pages/reports/InventoryOnHand';
+import Investments from './pages/investing/Investments';
+import InvestmentWorkspace from './pages/investing/InvestmentWorkspace';
+import InvestmentOverview from './pages/investing/InvestmentOverview';
+import InvestmentTransactions from './pages/investing/InvestmentTransactions';
+import InvestmentHoldings from './pages/investing/InvestmentHoldings';
 
 // import project styles
 import './styles/variables.css';
@@ -54,6 +60,7 @@ function AppLayout() {
               <Route path="/setup/people" element={<PeopleList />} />
               <Route path="/setup/accounts" element={<AccountsList />} />
               <Route path="/setup/resources" element={<ResourcesList />} />
+              <Route path="/setup/external-data" element={<ExternalDataList />} />
               <Route path="/accounting/suppliers" element={<SuppliersList />} />
               <Route path="/accounting/events" element={<EventsList />} />
               <Route path="/accounting/events/:eventId" element={<EventWorkspace />} />
@@ -61,6 +68,12 @@ function AppLayout() {
               <Route path="/accounting/reports/income-statement" element={<IncomeStatement />} />
               <Route path="/accounting/reports/balance-sheet" element={<BalanceSheet />} />
               <Route path="/accounting/reports/inventory" element={<InventoryOnHand />} />
+              <Route path="/investing/investments" element={<Investments />} />
+              <Route path="/investing/investments/:investmentId" element={<InvestmentWorkspace />}>
+                <Route index element={<InvestmentOverview />} />
+                <Route path="transactions" element={<InvestmentTransactions />} />
+                <Route path="holdings" element={<InvestmentHoldings />} />
+              </Route>
               <Route
                 path="*"
                 element={<div className="p-4">Welcome to the dashboard</div>}

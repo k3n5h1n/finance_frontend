@@ -1303,7 +1303,7 @@ function EntryLineRows({
                     <tr className="text-muted small">
                       <th>Description</th>
                       <th className="text-end">Qty</th>
-                      <th className="text-end">Unit</th>
+                      <th className="text-center">Unit</th>
                       <th className="text-end">Unit Cost</th>
                       <th className="text-end">Extended</th>
                       {isEditable && (
@@ -1316,7 +1316,7 @@ function EntryLineRows({
                       <tr key={item.id}>
                         <td>{item.description}</td>
                         <td className="text-end">{item.quantity}</td>
-                        <td className="text-end">{item.unit_measure ?? "—"}</td>
+                        <td className="text-center">{item.unit_measure ?? "—"}</td>
                         <td className="text-end">{formatUnitCost(item.unit_amount)}</td>
                         <td className="text-end">{formatAmount(item.extended_amount)}</td>
                         {isEditable && (

@@ -114,7 +114,7 @@ Query parameters (when supported):
 | `supplier_id`               | Events with at least one line for that supplier       |
 | `status`                    | `draft` or `posted`; omit for all statuses            |
 
-Implemented in `listEvents(organizationId, filters)` via `buildEventsListQuery()`. The Transactions list mirrors these as **URL query params** (informational URLs — see [UI patterns](./ui-patterns.md#informational-urls-list-filters)). Other list pages should follow the same param names where applicable.
+Implemented in `listEvents(organizationId, filters)` via `buildEventsListQuery()`. The Transactions list mirrors these as **URL query params** (informational URLs — see [UI patterns](./ui-patterns.md#informational-urls-list-filters)). Default display order is `entries_start` desc, then `description` asc (client-side on the current page). Other list pages should follow the same param names where applicable.
 
 ## Backend URL conventions (accounting)
 
@@ -144,7 +144,7 @@ Nested under an entry line; distinct from the setup **catalog** at `/resources/`
 | `display_order` | Required on create/update |
 | `resource_id` | Optional FK to setup `/resources/{id}`; send `null` to unlink |
 
-**Linking behavior (UI):** toggle “Link to catalog resource” → type (Item or Service) → active catalog dropdown for that type. Selecting a catalog row populates `description` from `name`. Items also populate `unit_measure` from `item.default_units` when present; services have no default units. Values are editable on the **line resource** only — the catalog record is never updated. Unlinking sets `resource_id: null` and leaves the text fields unchanged.
+**Linking behavior (UI):** toggle “Link to catalog resource” → type (Item, Service, or Instrument) → active catalog dropdown for that type. Selecting a catalog row populates `description` from `name`. Items also populate `unit_measure` from `item.default_units` when present; services and instruments have no default units. Instrument options show `symbol — name`. Values are editable on the **line resource** only — the catalog record is never updated. Unlinking sets `resource_id: null` and leaves the text fields unchanged.
 
 **Replicate:** `POST /accounting/events/{id}/replicate` with `include_line_resources` (boolean). Do not use `include_resources` — it is accepted but does not copy line resources.
 
@@ -167,8 +167,51 @@ Nested under an entry line; distinct from the setup **catalog** at `/resources/`
 |-------|--------|
 | `name`, `type`, `is_active` | Types: `ITEM`, `INSTRUMENT`, `SERVICE`, `PROPERTY` |
 | `item` | When `type === "ITEM"`: required `tracks_quantity`, optional `default_units` |
+| `instrument` | When `type === "INSTRUMENT"`: required `symbol`, `type` (`stock`/`bond`/`etf`/`mutual fund`/`index`), `currency`; optional `market_api_id` (integer), `date_listed`, `date_delisted`, `isin`, `cusip` |
 
 List has no filters/pagination yet (planned). Org-scoped via `X-Organization-Id`. Used by the Setup → Resources UI and as the optional link target for accounting line resources (`resource_id`).
+
+### External data (setup)
+
+| Operation | Endpoint |
+|-----------|----------|
+| List / create | `GET`/`POST /external_apis/` |
+| Detail / update / delete | `GET`/`PUT`/`DELETE /external_apis/{id}` (no trailing slash) |
+
+| Field | Notes |
+|-------|--------|
+| `name`, `type`, `provider`, `authorization_required` | Required |
+| `description` | Optional |
+| `type` | `BANKING`, `INVESTING`, `WEATHER` |
+| `provider` | e.g. `QUESTRADE` |
+| `external_api_authorizations` | Embedded on list and detail; read-only in UI for now |
+
+Each authorization includes `id`, `person` (`id`, `name`), `expire_time`, `created_dt`, `updated_dt`. Authorization CRUD is deferred (no safe test keys yet). The list expands authorizations under the parent API via chevrons.
+
+**Authorization connectivity test:** `GET /external_apis/{id}/test?authorization_id={authId}` — UI starts each row as **Unknown**; **Test** sets status to **Available** (HTTP 200) or **Error** (any failure).
+
+Org-scoped via `X-Organization-Id`. Used by Setup → External Data UI.
+
+### Investments
+
+| Operation | Endpoint |
+|-----------|----------|
+| List | `GET /investments/` |
+| Detail | `GET /investments/{id}` (no trailing slash) |
+| Broker transactions | `GET /investments/{id}/broker_transactions` |
+
+Broker transactions accept `page_number` and `page_size` only (no date filters yet). The response is a bare array, so the UI enables Next when a page is full and does not show a total count. Summary columns: trade date, settlement date, type, external account, symbol, net amount, event id.
+
+| Field | Notes |
+|-------|--------|
+| `name`, `type` | e.g. type `RRSP` |
+| `date_opened`, `date_closed` | Optional ISO dates; closed when `date_closed` is set |
+| `external_account_label` | Broker/account label for display |
+| `external_api_id`, `external_api_account_id`, `external_api_user_id` | External data linkage; list Broker API column is Enabled when `external_api_id` is set |
+| `persons[]` | Linked people (`person_id`, `person_name`, `role`, `interest_fraction`); detail page only |
+| `accounts[]` | Linked chart accounts (`account_id`, `account_name`, `type` e.g. `HOLDINGS_CASH`); detail page only |
+
+Org-scoped via `X-Organization-Id`. Used by Investing → Investments UI. List sorts open first, then by name. Detail page (`InvestmentWorkspace`) loads `GET /investments/{id}` and shows header metadata plus **Accounts** and **People** sections using embedded `account_name` and `person_name`.
 
 Query parameters (GET only — no JSON body):
 
@@ -178,7 +221,7 @@ Query parameters (GET only — no JSON body):
 
 Balance sheet response shape: `{ periods: [...], rows: [{ account, balances: [...] }] }` with optional top-level `posted_only`. UI reorders periods newest-first for display.
 
-Inventory on-hand response shape: `{ items: [{ resource_id, resource_name, default_units, quantity }] }` for catalog resources of type ITEM.
+Inventory on-hand response shape: `{ items: [{ resource_id, resource_name, default_units, quantity, average_cost, total_cost }] }` for catalog resources of type ITEM. `average_cost` may be `null` (e.g. zero quantity).
 
 ## Posting (entries, groups, events)
 

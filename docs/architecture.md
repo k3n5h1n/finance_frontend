@@ -30,6 +30,8 @@ src/
 │   ├── people/
 │   ├── reports/
 │   ├── resources/       # Setup catalog (ITEM, etc.)
+│   ├── externalData/    # Setup external APIs (banking, investing, weather)
+│   ├── investing/       # Investing area (investments, etc.)
 │   └── suppliers/
 ├── styles/              # variables.css (theme tokens)
 └── utils/               # orgRequest, paginatedList, listSearchParams, validation schemas
@@ -62,9 +64,10 @@ Routes are declared in `App.jsx`. Navigation structure is duplicated in `src/dat
 
 | Area | Example paths |
 |------|----------------|
-| Setup | `/setup/organizations`, `/setup/people`, `/setup/accounts`, `/setup/resources` |
+| Setup | `/setup/organizations`, `/setup/people`, `/setup/accounts`, `/setup/resources`, `/setup/external-data` |
 | Accounting | `/accounting/events`, `/accounting/events/:eventId`, `/accounting/account-history`, `/accounting/suppliers` |
 | Reports | `/accounting/reports/income-statement`, `/accounting/reports/balance-sheet`, `/accounting/reports/inventory` |
+| Investing | `/investing/investments`, `/investing/investments/:investmentId` |
 
 ## Organization context
 

@@ -11,6 +11,14 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
+    // CSS side-effect imports must not be prebundled as JS (breaks Bootstrap theme/icons).
+    optimizeDeps: {
+      exclude: [
+        "bootstrap/dist/css/bootstrap.min.css",
+        "bootstrap-icons/font/bootstrap-icons.css",
+        "remixicon/fonts/remixicon.css",
+      ],
+    },
     server: {
       host: "0.0.0.0", // needed for container access
       port: 5173,

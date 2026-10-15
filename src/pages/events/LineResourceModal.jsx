@@ -6,6 +6,7 @@ import {
   lineResourceSchema,
   lineResourceToFormValues,
   formValuesToLineResourcePayload,
+  computeLineResourceExtendedAmount,
 } from "../../utils/validation/lineResourceSchema";
 import { formatResourceType } from "../../utils/validation/resourceSchema";
 import {
@@ -52,8 +53,26 @@ export default function LineResourceModal({
 
   useEffect(() => {
     if (!isOpen) return;
-    reset(lineResourceToFormValues(resource, defaults));
-  }, [isOpen, resource, defaults, reset]);
+    const values = lineResourceToFormValues(resource, defaults);
+    reset(values);
+
+    // If stored extended was saved with the old abs() formula, mark dirty so
+    // Save is enabled and can persist the sign-corrected amount.
+    if (resource != null) {
+      const computed = computeLineResourceExtendedAmount(
+        values.quantity,
+        values.unit_amount
+      );
+      const stored = Number(resource.extended_amount);
+      if (
+        computed != null &&
+        Number.isFinite(stored) &&
+        Math.abs(computed - stored) >= 0.005
+      ) {
+        setValue("unit_amount", values.unit_amount, { shouldDirty: true });
+      }
+    }
+  }, [isOpen, resource, defaults, reset, setValue]);
 
   useEffect(() => {
     if (!isOpen || selectedOrganizationId == null) return;
@@ -146,7 +165,7 @@ export default function LineResourceModal({
       shouldDirty: true,
       shouldValidate: true,
     });
-    // Items may supply default units; services have no item details.
+    // Items may supply default units; services/instruments do not.
     setValue(
       "unit_measure",
       selected.type === "ITEM" ? (selected.item?.default_units ?? "") : "",
@@ -167,12 +186,15 @@ export default function LineResourceModal({
   };
 
   const extendedPreview = useMemo(() => {
-    const qty = Number(quantity);
-    const unit = Number(unitAmount);
-    if (!Number.isFinite(qty) || !Number.isFinite(unit) || qty === 0 || unit === 0) {
+    const computed = computeLineResourceExtendedAmount(quantity, unitAmount);
+    if (
+      computed == null ||
+      Number(quantity) === 0 ||
+      Number(unitAmount) === 0
+    ) {
       return null;
     }
-    return Math.round(Math.abs(qty) * unit * 100) / 100;
+    return computed;
   }, [quantity, unitAmount]);
 
   const onSubmit = async (data) => {
@@ -291,7 +313,9 @@ export default function LineResourceModal({
                           </option>
                           {catalogOptions.map((item) => (
                             <option key={item.id} value={String(item.id)}>
-                              {item.name}
+                              {item.type === "INSTRUMENT" && item.instrument?.symbol
+                                ? `${item.instrument.symbol} — ${item.name}`
+                                : item.name}
                               {item.is_active === false ? " (inactive)" : ""}
                             </option>
                           ))}

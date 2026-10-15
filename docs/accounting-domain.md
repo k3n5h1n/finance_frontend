@@ -35,9 +35,9 @@ Event
 | Entry group | `PATCH /accounting/entry_groups/{id}/post` | `canPostEntryGroup`, `getPostEntryGroupBlockReason` |
 | Event | `PATCH /accounting/events/{id}/post` | `canPostEvent`, `getPostEventBlockReason` |
 
-**Entry:** must be draft, have at least one line, and be balanced (debits = credits within 0.005).
+**Entry:** must be draft, have at least one line, be balanced (debits = credits within 0.005), and have a date that is not in the future (local calendar day).
 
-**Entry group / event:** every entry must be balanced; at least one draft entry must remain; each draft entry must also pass entry-level checks (e.g. has lines). Posted entries count toward the balance requirement but are not re-posted.
+**Entry group / event:** every entry must be balanced; at least one draft entry must remain; each draft entry must also pass entry-level checks (e.g. has lines, not future-dated). Posted entries count toward the balance requirement but are not re-posted.
 
 ### Writing data
 
@@ -68,6 +68,7 @@ Auto-create: adding an entry when no group exists creates a primary entry group 
 
 - Hierarchical via `parent` / `parent_id`
 - Types: `asset`, `liability`, `equity`, `revenue`, `expense`
+- Optional `owner` (`{ id, name }` on read; write `owner_id`, or `null` to clear)
 - Tree built client-side: `buildAccountTree`, `flattenAccountTreeForSelect`
 
 ### Account history
@@ -107,7 +108,7 @@ Rows include running balance, event link, posted flag.
 `GET /accounting/reports/inventory/?as_of_date=&posted_only=`
 
 - Nav: Finances → Inventory → On-Hand (`/accounting/reports/inventory`)
-- Response: `items[]` with `resource_id`, `resource_name`, `default_units`, `quantity` (may be negative)
+- Response: `items[]` with `resource_id`, `resource_name`, `default_units`, `quantity` (may be negative), `average_cost` (nullable), `total_cost`
 - Optional filters: `as_of_date` (`YYYY-MM-DD`), `posted_only` (default false); blank as-of date omits the param (current on-hand)
 - UI sorts by resource name; negative quantities shown in danger color
 
@@ -137,7 +138,7 @@ Ledger columns show em dash for zero debit/credit in history tables.
 
 | View | Sort |
 |------|------|
-| Events list | Server-side (default from API; was client-side before pagination) |
+| Events list | `entries_start` desc, then `description` asc (client-side on current page until API sort exists) |
 | Workspace children | `display_order` asc, `id` tiebreaker |
 | Account tree | Type order, then name |
 
@@ -160,12 +161,13 @@ Org-scoped catalog at `/resources/` (distinct from accounting **line resources**
 
 | Field | Notes |
 |-------|--------|
-| `name`, `type`, `is_active` | Types: `ITEM`, `INSTRUMENT`, `SERVICE`, `PROPERTY` |
+| `name`, `type`, `is_active` | Types: `ITEM`, `INSTRUMENT`, `SERVICE`, `PROPERTY`. Type is immutable after create in the UI. |
 | `item` | Present when `type === "ITEM"`: `tracks_quantity`, optional `default_units` |
+| `instrument` | Present when `type === "INSTRUMENT"`: required `symbol`, `type` (`stock` / `bond` / `etf` / `mutual fund` / `index`), `currency` (`CAD` / `USD`); optional `market_api_id` (int), `date_listed`, `date_delisted`, `isin`, `cusip`. UI requires delisted ≥ listed when both set. |
 
-List endpoint has no filters/pagination yet; UI sorts client-side by name.
+List endpoint has no filters/pagination yet; UI sorts client-side by name. List **Details** column shows item tracking/units or `symbol · instrument type · currency`. Long names wrap (`.resources-name-cell`).
 
-Accounting line resources may optionally set `resource_id` to a catalog resource (Item or Service). Selecting a catalog row populates line `description` from `name`; Items also copy `item.default_units` into `unit_measure` when present. Those values are stored on the line resource and remain editable without updating the catalog. Unlinking sets `resource_id: null` and keeps the copied fields.
+Accounting line resources may optionally set `resource_id` to a catalog resource (Item, Service, or Instrument). Selecting a catalog row populates line `description` from `name`; Items also copy `item.default_units` into `unit_measure` when present. Those values are stored on the line resource and remain editable without updating the catalog. Unlinking sets `resource_id: null` and keeps the copied fields.
 
 ## Future backend features (UI hooks ready or planned)
 

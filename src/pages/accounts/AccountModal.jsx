@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -8,6 +8,7 @@ import {
   formValuesToPayload,
 } from "../../utils/validation/accountSchema";
 import { createAccount, updateAccount, deleteAccount } from "./accountsApi";
+import { listPeople } from "../people/peopleApi";
 import { getDescendantIds, flattenAccountTreeForSelect } from "./accountTree";
 import { useOrganization } from "../../context/OrganizationContext";
 import { useEscapeToClose } from "../../hooks/useEscapeToClose";
@@ -24,6 +25,8 @@ export default function AccountModal({
   const isEdit = mode === "edit";
   const isView = mode === "view";
   const isAdd = mode === "add";
+  const [people, setPeople] = useState([]);
+  const [peopleError, setPeopleError] = useState(null);
 
   const {
     register,
@@ -44,6 +47,30 @@ export default function AccountModal({
     const defaultOrganizationId = isAdd ? selectedOrganizationId : undefined;
     reset(accountToFormValues(account, defaultOrganizationId));
   }, [account, isOpen, isAdd, selectedOrganizationId, reset]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await listPeople();
+        if (cancelled) return;
+        const list = Array.isArray(data) ? data : [];
+        setPeople([...list].sort((a, b) => a.name.localeCompare(b.name)));
+        setPeopleError(null);
+      } catch (err) {
+        if (cancelled) return;
+        console.error("Failed to load people:", err);
+        setPeople([]);
+        setPeopleError(err.message ?? "Failed to load people.");
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen]);
 
   const parentOptions = useMemo(() => {
     const blockedParentIds = new Set();
@@ -219,6 +246,30 @@ export default function AccountModal({
                     ))}
                   </select>
                 </div>
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Owner</label>
+                <select
+                  className={`form-select ${errors.owner_id ? "is-invalid" : ""}`}
+                  disabled={isView}
+                  {...register("owner_id")}
+                >
+                  <option value="">None</option>
+                  {people.map((person) => (
+                    <option key={person.id} value={person.id}>
+                      {person.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.owner_id && (
+                  <div className="invalid-feedback">
+                    {errors.owner_id.message}
+                  </div>
+                )}
+                {peopleError && (
+                  <div className="form-text text-danger">{peopleError}</div>
+                )}
               </div>
             </div>
 
